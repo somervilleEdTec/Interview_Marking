@@ -40,7 +40,8 @@ export function loadStore(userData: string): AppStore {
 export function saveStore(userData: string, store: AppStore): void {
   const p = storePath(userData);
   mkdirSync(dirname(p), { recursive: true });
-  writeFileSync(p, JSON.stringify(store, null, 2), "utf8");
+  // Compact JSON — marks append frequently; pretty-print wasted I/O
+  writeFileSync(p, JSON.stringify(store), "utf8");
 }
 
 /** Persist immediately after each mark (crash-safe). */

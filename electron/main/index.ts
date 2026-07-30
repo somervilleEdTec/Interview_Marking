@@ -5,6 +5,7 @@ import {
   ipcMain,
   dialog,
   shell,
+  session,
 } from "electron";
 import { join } from "path";
 import { readFileSync, writeFileSync } from "fs";
@@ -164,15 +165,19 @@ function createWindow(): void {
       preload: join(__dirname, "../preload/index.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: true,
+      webSecurity: true,
     },
   });
 
-  if (process.env.ELECTRON_RENDERER_URL) {
+  if (!app.isPackaged && process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
+
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  mainWindow.webContents.on("will-navigate", (e) => e.preventDefault());
 
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -184,6 +189,10 @@ app.whenReady().then(() => {
   startGamepadBridge();
   const initial = loadStore(userData());
   codes = initial.project?.codes ?? [];
+
+  session.defaultSession.setPermissionRequestHandler((_wc, _perm, cb) =>
+    cb(false),
+  );
 
   ipcMain.handle("store:load", () => loadStore(userData()));
 
@@ -506,10 +515,6 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle("saturation:list", () => loadStore(userData()).saturation);
-
-  ipcMain.handle("shell:showItem", (_e, p: string) =>
-    shell.showItemInFolder(p),
-  );
 
   app.on("will-quit", () => {
     unregisterShortcuts({ notify: false });

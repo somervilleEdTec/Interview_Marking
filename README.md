@@ -2,7 +2,7 @@
 
 Local Windows desktop app for **eyes-free live interview marking**, SRT/VTT alignment, and append-only write-back to your existing Excel coding workbook.
 
-No audio or video is ever captured. The app stores times, integers, and text only.
+No audio or video is ever captured. The app stores times, integers, and text only. See [docs/privacy.md](docs/privacy.md) for local-first privacy notes for HE research use.
 
 ## End users (Windows)
 

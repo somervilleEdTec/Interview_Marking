@@ -1,6 +1,7 @@
 import type { Session } from "../model/types";
 import { formatInterviewTime, markAtToMs } from "../model/time";
 import { sessionHasTimedTranscript } from "../transcript/turns-for-merge";
+import { escapeHtml } from "./bind-targets";
 
 export interface ResolveProps {
   session: Session | null;
@@ -33,6 +34,11 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
   const hasTimed = sessionHasTimedTranscript(session);
   const hasCoded = session.marks.some((m) => !m.dropped && m.codeRef);
   const canMerge = hasTimed && hasCoded;
+  const lineHint = hasTimed
+    ? `${session.transcript?.length ?? session.transcriptTurns?.length ?? 0} timestamped lines`
+    : session.transcriptTurns?.length
+      ? "Transcript imported but has no timestamps — use SRT/VTT/DOCX/PDF"
+      : "No transcript yet";
 
   root.innerHTML = `
     <section class="panel panel--wide">
@@ -46,13 +52,7 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
       <label class="field">Alignment offset (seconds)
         <input id="offset" type="number" step="0.1" value="${session.recordingOffsetSec}" />
       </label>
-      <p class="hint">Adjust so mark times (from 0:00) line up with the recording. ${
-        hasTimed
-          ? `${session.transcript?.length ?? session.transcriptTurns?.length ?? 0} timestamped lines`
-          : session.transcriptTurns?.length
-            ? "Transcript imported but has no timestamps — use SRT/VTT/DOCX/PDF"
-            : "No transcript yet"
-      }</p>
+      <p class="hint">Adjust so mark times (from 0:00) line up with the recording. ${escapeHtml(lineHint)}</p>
       <ul class="resolve-list">
         ${session.marks
           .filter((m) => !m.dropped)
@@ -61,14 +61,14 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
             return `<li>
               <div class="resolve-head">
                 <span class="mono">${formatInterviewTime(markAtToMs(m.at, session.startedAt))}</span>
-                <span class="chip">${m.slot}</span>
-                <strong>${m.codeRef ?? "—"}</strong>
+                <span class="chip">${escapeHtml(m.slot)}</span>
+                <strong>${escapeHtml(m.codeRef ?? "—")}</strong>
                 <span class="mono">${r ? `L${r.lineStart}–${r.lineEnd}` : "unresolved"}</span>
               </div>
-              <p class="extract">${r?.text ?? ""}</p>
+              <p class="extract">${escapeHtml(r?.text ?? "")}</p>
               <div class="row">
-                <label>before <input data-win-before="${m.id}" type="number" value="${m.window.before}" /></label>
-                <label>after <input data-win-after="${m.id}" type="number" value="${m.window.after}" /></label>
+                <label>before <input data-win-before="${escapeHtml(m.id)}" type="number" value="${m.window.before}" /></label>
+                <label>after <input data-win-after="${escapeHtml(m.id)}" type="number" value="${m.window.after}" /></label>
               </div>
             </li>`;
           })
@@ -79,8 +79,13 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
         [...bySheet.entries()]
           .map(
             ([sheet, marks]) =>
-              `<div class="preview-sheet"><h3>${sheet} (+${marks.length})</h3>
-            <ul>${marks.map((m) => `<li class="mono">${session.participantNumber} | ${session.interviewNumber} | ${m.resolved!.lineStart}–${m.resolved!.lineEnd} | ${m.resolved!.text.slice(0, 80)}</li>`).join("")}</ul></div>`,
+              `<div class="preview-sheet"><h3>${escapeHtml(sheet)} (+${marks.length})</h3>
+            <ul>${marks
+              .map(
+                (m) =>
+                  `<li class="mono">${escapeHtml(session.participantNumber)} | ${escapeHtml(session.interviewNumber)} | ${m.resolved!.lineStart}–${m.resolved!.lineEnd} | ${escapeHtml(m.resolved!.text.slice(0, 80))}</li>`,
+              )
+              .join("")}</ul></div>`,
           )
           .join("") || '<p class="ink-3">Nothing ready to append.</p>'
       }

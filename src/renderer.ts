@@ -1,9 +1,15 @@
+import "@fontsource/dm-sans/400.css";
+import "@fontsource/dm-sans/500.css";
+import "@fontsource/dm-sans/700.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/ibm-plex-mono/600.css";
 import "./styles/app.css";
 import type { Code, Session, Mark } from "./model/types";
 import { resolveMarkLines } from "./model/resolve";
 import { renderSetup } from "./screens/setup";
 import type { InputMode } from "./screens/controller-layout";
-import { renderMarking } from "./screens/marking";
+import { renderMarking, flashMarkingSlot, stopMarkingClock } from "./screens/marking";
 import { renderReview } from "./screens/review";
 import { renderResolve } from "./screens/resolve";
 import { listConnectedPads, resolveAssignedPad } from "./input/gamepad-detect";
@@ -89,10 +95,15 @@ async function bootstrap(): Promise<void> {
       state.flashSlot = mark.slot;
       state.ticks.push({ id: mark.id, slot: mark.slot });
       if (state.ticks.length > 40) state.ticks.shift();
-      if (state.screen === "marking") paint();
+      if (state.screen === "marking") {
+        flashMarkingSlot(stage(), mark.slot, session);
+        paintRibbon();
+      }
       setTimeout(() => {
         state.flashSlot = null;
-        if (state.screen === "marking") paint();
+        if (state.screen === "marking") {
+          flashMarkingSlot(stage(), null, state.session);
+        }
       }, 180);
     },
   );
@@ -175,29 +186,52 @@ async function bootstrap(): Promise<void> {
 }
 
 function navigate(screen: Screen): void {
+  if (state.screen === "marking" && screen !== "marking") stopMarkingClock();
   state.screen = screen;
   paint();
+}
+
+function paintRibbon(): void {
+  ribbon().innerHTML = state.ticks
+    .map(
+      (t) =>
+        `<span class="tick tick-in" data-slot="${t.slot}" title="${t.slot}"></span>`,
+    )
+    .join("");
 }
 
 function paint(): void {
   refreshPads();
   const status = padStatusText();
   const tb = topbar();
-  tb.innerHTML = `
-    <span class="eyebrow">Interview Marking</span>
-    <nav class="nav">
-      <button type="button" data-nav="setup" class="${state.screen === "setup" ? "active" : ""}">Setup</button>
-      <button type="button" data-nav="marking" class="${state.screen === "marking" ? "active" : ""}">Mark</button>
-      <button type="button" data-nav="review" class="${state.screen === "review" ? "active" : ""}">Review</button>
-      <button type="button" data-nav="resolve" class="${state.screen === "resolve" ? "active" : ""}">Transcript</button>
-    </nav>
-    <span id="pad-status" class="pad-status" data-on="${status.on ? "1" : "0"}">${status.text}</span>
-  `;
-  tb.querySelectorAll("[data-nav]").forEach((btn) => {
-    btn.addEventListener("click", () =>
-      navigate((btn as HTMLElement).dataset.nav as Screen),
-    );
-  });
+  tb.replaceChildren();
+  const eyebrow = document.createElement("span");
+  eyebrow.className = "eyebrow";
+  eyebrow.textContent = "Interview Marking";
+  const nav = document.createElement("nav");
+  nav.className = "nav";
+  for (const id of ["setup", "marking", "review", "resolve"] as Screen[]) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.dataset.nav = id;
+    btn.textContent =
+      id === "setup"
+        ? "Setup"
+        : id === "marking"
+          ? "Mark"
+          : id === "review"
+            ? "Review"
+            : "Transcript";
+    if (state.screen === id) btn.classList.add("active");
+    btn.addEventListener("click", () => navigate(id));
+    nav.appendChild(btn);
+  }
+  const padEl = document.createElement("span");
+  padEl.id = "pad-status";
+  padEl.className = "pad-status";
+  padEl.dataset.on = status.on ? "1" : "0";
+  padEl.textContent = status.text;
+  tb.append(eyebrow, nav, padEl);
 
   const el = stage();
   if (state.screen === "setup") {
@@ -372,12 +406,7 @@ function paint(): void {
     });
   }
 
-  ribbon().innerHTML = state.ticks
-    .map(
-      (t) =>
-        `<span class="tick tick-in" data-slot="${t.slot}" title="${t.slot}"></span>`,
-    )
-    .join("");
+  paintRibbon();
 
   document.body.classList.toggle("is-armed", state.armed);
 }

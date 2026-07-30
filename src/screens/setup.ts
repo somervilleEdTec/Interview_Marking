@@ -6,6 +6,7 @@ import { renderCriteriaEditor } from "./criteria-editor";
 import { renderControllerPanel } from "./controller-panel";
 import { renderControllerLayout } from "./controller-layout";
 import type { InputMode } from "./controller-layout";
+import { escapeHtml } from "./bind-targets";
 
 export interface SetupProps {
   codes: Code[];
@@ -45,7 +46,7 @@ export function renderSetup(root: HTMLElement, props: SetupProps): void {
       <p class="lede">Open your interview workbook, type criteria, assign them to controller buttons (or home-row keys), then start with the Zoom recording.</p>
       <div class="row">
         <button type="button" class="btn btn--primary" id="pick-wb">Choose workbook</button>
-        <span class="mono path">${props.workbookPath || "No workbook selected"}</span>
+        <span class="mono path">${escapeHtml(props.workbookPath || "No workbook selected")}</span>
       </div>
       <div class="fields">
         <label class="field">Participant <input id="pnum" value="P1" /></label>

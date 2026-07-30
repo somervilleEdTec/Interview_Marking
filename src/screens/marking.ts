@@ -138,7 +138,7 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
       <div class="status-row">
         <span class="status ${props.armed ? "status--live" : ""}">${props.armed ? "Armed" : "Paused"}</span>
         <span class="mono clock" id="clock">${clockText(props.session?.startedAt)}</span>
-        <span class="meta">${props.session?.participantNumber ?? "—"} · ${props.session?.interviewNumber ?? "—"} · ${total} marks</span>
+        <span class="meta" id="mark-meta">${escapeHtml(props.session?.participantNumber ?? "—")} · ${escapeHtml(props.session?.interviewNumber ?? "—")} · ${total} marks</span>
       </div>
       ${codesHtml}
       <div class="tiles tiles--wide">
@@ -161,16 +161,55 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
     </section>
   `;
 
+  stopMarkingClock();
   const clock = root.querySelector("#clock");
-  const timer = window.setInterval(() => {
-    if (clock) clock.textContent = clockText(props.session?.startedAt);
+  markingClockTimer = window.setInterval(() => {
+    if (clock && props.session?.startedAt) {
+      clock.textContent = clockText(props.session.startedAt);
+    }
   }, 250);
   root.querySelector("#toggle-arm")?.addEventListener("click", () => {
-    clearInterval(timer);
+    stopMarkingClock();
     props.onToggleArm();
   });
   root.querySelector("#end-session")?.addEventListener("click", () => {
-    clearInterval(timer);
+    stopMarkingClock();
     props.onEnd();
   });
+}
+
+/** Update counts + flash without rebuilding the Mark screen (avoids timer leaks). */
+export function flashMarkingSlot(
+  root: HTMLElement,
+  slot: string | null,
+  session: Session | null,
+): void {
+  root.querySelectorAll(".flash").forEach((el) => el.classList.remove("flash"));
+  if (slot) {
+    root.querySelector(`[data-slot="${slot}"]`)?.classList.add("flash");
+  }
+  const counts = new Map<string, number>();
+  for (const m of session?.marks ?? []) {
+    if (m.dropped) continue;
+    counts.set(m.slot, (counts.get(m.slot) ?? 0) + 1);
+  }
+  const total = [...counts.values()].reduce((a, b) => a + b, 0);
+  root.querySelectorAll("[data-slot]").forEach((el) => {
+    const s = (el as HTMLElement).dataset.slot!;
+    const countEl = el.querySelector(".tile-count");
+    if (countEl) countEl.textContent = String(counts.get(s) ?? 0);
+  });
+  const meta = root.querySelector("#mark-meta");
+  if (meta && session) {
+    meta.textContent = `${session.participantNumber} · ${session.interviewNumber} · ${total} marks`;
+  }
+}
+
+let markingClockTimer: number | null = null;
+
+export function stopMarkingClock(): void {
+  if (markingClockTimer != null) {
+    window.clearInterval(markingClockTimer);
+    markingClockTimer = null;
+  }
 }

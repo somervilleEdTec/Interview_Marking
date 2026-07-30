@@ -1,11 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { turnsForMerge, sessionHasTimedTranscript } from "./turns-for-merge";
 import { mergeCriteriaByNearestTimestamp } from "./merge-criteria";
-import { loadTranscriptFile } from "./load";
-import { parseTxt } from "./parse";
+import { parseTxt, parseSrt, parseSpeakerTurns } from "./parse";
+import { srtOrVttToTurns } from "./parse";
 import type { Mark, Session, TranscriptTurn } from "../model/types";
-import { readFileSync, writeFileSync, mkdirSync } from "fs";
-import { join } from "path";
 
 const mark = (at: number, codeRef: string): Mark => ({
   id: "m1",
@@ -67,40 +65,35 @@ describe("turnsForMerge", () => {
   });
 });
 
-describe("load + merge all timestamped formats", () => {
-  const uploads = "/home/ubuntu/.cursor/projects/workspace/uploads";
-  const tmp = join(__dirname, "fixtures/_merge_all");
+describe("load + merge timestamped formats", () => {
+  it("merges SRT and speaker-turn content", () => {
+    const srt = `1
+00:00:01,000 --> 00:00:02,000
+Hello
 
-  it("merges SRT VTT DOCX and both PDFs", async () => {
-    mkdirSync(tmp, { recursive: true });
-    const files = [
-      "transcript-P04_3908.srt",
-      "transcript-P04_b118.vtt",
-      "transcript_b51d.docx",
-      "tanscript_2256.pdf",
-      "transcript-P04-numbered_62e8.pdf",
-    ];
-    for (const name of files) {
-      const dest = join(tmp, name);
-      writeFileSync(dest, readFileSync(join(uploads, name)));
-      const { turns } = await loadTranscriptFile(dest);
-      const rows = mergeCriteriaByNearestTimestamp(
-        turns,
-        [mark(50_000, "risk")],
-        0,
-      );
-      expect(rows.some((r) => r.criteria === "risk"), name).toBe(true);
-      expect(
-        turns.some((t) => typeof t.startMs === "number"),
-        name,
-      ).toBe(true);
-    }
+2
+00:00:50,000 --> 00:00:51,000
+World
+`;
+    const srtTurns = srtOrVttToTurns(parseSrt(srt));
+    expect(
+      mergeCriteriaByNearestTimestamp(srtTurns, [mark(50_000, "risk")], 0).some(
+        (r) => r.criteria === "risk",
+      ),
+    ).toBe(true);
+
+    const speaker = parseSpeakerTurns(
+      "[00:00] I: Hello\n[00:50] P: World",
+    );
+    expect(
+      mergeCriteriaByNearestTimestamp(speaker, [mark(50_000, "risk")], 0).some(
+        (r) => r.criteria === "risk",
+      ),
+    ).toBe(true);
   });
 
   it("sniffs speaker-turn TXT as timestamped", () => {
-    const turns = parseTxt(
-      "[00:00] I: Hello there.\n[00:22] P: Yeah fine.",
-    );
+    const turns = parseTxt("[00:00] I: Hello there.\n[00:22] P: Yeah fine.");
     expect(turns).toHaveLength(2);
     expect(turns[0].startMs).toBe(0);
     expect(turns[1].speaker).toBe("P");

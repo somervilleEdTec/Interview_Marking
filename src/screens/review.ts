@@ -1,5 +1,6 @@
 import type { Code, Session } from "../model/types";
 import { formatInterviewTime, markAtToMs } from "../model/time";
+import { escapeHtml } from "./bind-targets";
 
 export interface ReviewProps {
   session: Session | null;
@@ -31,21 +32,23 @@ export function renderReview(root: HTMLElement, props: ReviewProps): void {
             const time = formatInterviewTime(
               markAtToMs(m.at, session.startedAt),
             );
-            return `<li class="${m.dropped ? "dropped" : ""}" data-id="${m.id}">
+            const label =
+              m.codeRef ?? (m.slot === "nofit" ? "nofit" : "general");
+            return `<li class="${m.dropped ? "dropped" : ""}" data-id="${escapeHtml(m.id)}">
               <span class="mono">${time}</span>
-              <span class="chip">${m.slot}</span>
-              <span>${m.codeRef ?? (m.slot === "nofit" ? "nofit" : "general")}</span>
+              <span class="chip">${escapeHtml(m.slot)}</span>
+              <span>${escapeHtml(label)}</span>
               ${
                 m.slot === "general" && !m.codeRef
-                  ? `<select data-assign="${m.id}">
+                  ? `<select data-assign="${escapeHtml(m.id)}">
                       <option value="">Assign code…</option>
-                      ${props.codes.map((c) => `<option value="${c.sheetName}">${c.sheetName}</option>`).join("")}
+                      ${props.codes.map((c) => `<option value="${escapeHtml(c.sheetName)}">${escapeHtml(c.sheetName)}</option>`).join("")}
                     </select>`
                   : ""
               }
-              <input data-note="${m.id}" placeholder="Note" value="${m.note.replace(/"/g, "&quot;")}" />
-              <button type="button" data-drop="${m.id}">${m.dropped ? "Restore" : "Drop"}</button>
-              ${idx > 0 ? `<button type="button" data-merge="${m.id}">Merge←prev</button>` : ""}
+              <input data-note="${escapeHtml(m.id)}" placeholder="Note" value="${escapeHtml(m.note)}" />
+              <button type="button" data-drop="${escapeHtml(m.id)}">${m.dropped ? "Restore" : "Drop"}</button>
+              ${idx > 0 ? `<button type="button" data-merge="${escapeHtml(m.id)}">Merge←prev</button>` : ""}
             </li>`;
           })
           .join("")}
