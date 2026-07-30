@@ -15,6 +15,10 @@ import {
   type MarkAction,
 } from "../../src/input/action-map";
 import {
+  profileById,
+  type ControllerProfileId,
+} from "../../src/input/controller-profiles";
+import {
   loadStore,
   saveStore,
   upsertSession,
@@ -31,6 +35,7 @@ import { parseTranscriptFile } from "../../src/transcript/parse";
 import { writeNumberedDocx } from "../../src/transcript/docx";
 import { resolveMarkLines, DEFAULT_WINDOW } from "../../src/model/resolve";
 import type { Mark, Session, MarkSlot, Code } from "../../src/model/types";
+import { codeParent } from "../../src/model/hierarchy";
 
 let mainWindow: BrowserWindow | null = null;
 let armed = false;
@@ -38,6 +43,11 @@ let activeSessionId: string | null = null;
 let codes: Code[] = [];
 let gamepadTimer: NodeJS.Timeout | null = null;
 let lastPadSignature = "";
+let lastProfileId: string | null = null;
+
+function codeParentSafe(sheetName: string): string | null {
+  return codeParent(sheetName);
+}
 
 function userData(): string {
   return app.getPath("userData");
@@ -111,16 +121,25 @@ function unregisterShortcuts(): void {
 /** Poll renderer-reported gamepad OR keepalive channel — renderer sends button state. */
 function startGamepadBridge(): void {
   ipcMain.removeHandler("gamepad:buttons");
-  ipcMain.handle("gamepad:buttons", (_e, buttons: boolean[], l1: boolean) => {
-    if (!armed) return { action: null, connected: true };
-    const sig = buttons.map((b) => (b ? "1" : "0")).join("") + (l1 ? "L" : "");
-    if (sig === lastPadSignature) return { action: null, connected: true };
-    lastPadSignature = sig;
-    if (!buttons.some(Boolean)) return { action: null, connected: true };
-    const action = gamepadAction(buttons, l1);
-    if (action) handleAction(action);
-    return { action, connected: true };
-  });
+  ipcMain.handle(
+    "gamepad:buttons",
+    (_e, buttons: boolean[], l1: boolean, profileId?: ControllerProfileId) => {
+      if (!armed) return { action: null, connected: true };
+      const sig =
+        buttons.map((b) => (b ? "1" : "0")).join("") +
+        (l1 ? "L" : "") +
+        (profileId ?? "");
+      if (sig === lastPadSignature) return { action: null, connected: true };
+      lastPadSignature = sig;
+      if (!buttons.some(Boolean)) return { action: null, connected: true };
+      const profile = profileId ? profileById(profileId) : undefined;
+      lastProfileId = profileId ?? null;
+      void lastProfileId;
+      const action = gamepadAction(buttons, l1, profile);
+      if (action) handleAction(action);
+      return { action, connected: true };
+    },
+  );
 }
 
 function createWindow(): void {
@@ -149,8 +168,35 @@ function createWindow(): void {
 app.whenReady().then(() => {
   createWindow();
   startGamepadBridge();
+  const initial = loadStore(userData());
+  codes = initial.project?.codes ?? [];
 
   ipcMain.handle("store:load", () => loadStore(userData()));
+
+  ipcMain.handle("controller:getAssigned", () => {
+    return loadStore(userData()).assignedGamepadId;
+  });
+
+  ipcMain.handle("controller:setAssigned", (_e, id: string | null) => {
+    const store = loadStore(userData());
+    store.assignedGamepadId = id;
+    saveStore(userData(), store);
+    return store.assignedGamepadId;
+  });
+
+  ipcMain.handle("controller:openBluetooth", async () => {
+    // Windows Settings deep link; other platforms open generic BT prefs when possible
+    if (process.platform === "win32") {
+      await shell.openExternal("ms-settings:bluetooth");
+    } else if (process.platform === "darwin") {
+      await shell.openExternal(
+        "x-apple.systempreferences:com.apple.BluetoothSettings",
+      );
+    } else {
+      await shell.openExternal("https://support.microsoft.com/bluetooth");
+    }
+    return true;
+  });
 
   ipcMain.handle("workbook:pick", async () => {
     const res = await dialog.showOpenDialog(mainWindow!, {
@@ -167,15 +213,29 @@ app.whenReady().then(() => {
     }
     try {
       await assertWritable(path);
-      codes = await readCodes(path);
+      const sheets = await readCodes(path);
       const store = loadStore(userData());
+      const prevCodes = store.project?.codes ?? [];
+      const workbookSheets = sheets.map((s) => s.sheetName);
+      // Preserve typed criteria (esp. those with keys); enrich rowCount/parent when label matches a sheet
+      const preserved = prevCodes.map((c) => {
+        const match = sheets.find((s) => s.sheetName === c.sheetName);
+        if (!match) return c;
+        return {
+          ...c,
+          parent: match.parent,
+          rowCount: match.rowCount,
+        };
+      });
+      codes = preserved;
       store.project = {
         workbookPath: path,
-        codes,
+        workbookSheets,
+        codes: preserved,
         sessions: store.project?.sessions ?? [],
       };
       saveStore(userData(), store);
-      return { path, codes };
+      return { path, codes: preserved, workbookSheets };
     } catch (e) {
       return { error: e instanceof Error ? e.message : String(e), path };
     }
@@ -196,6 +256,68 @@ app.whenReady().then(() => {
       return store.project.codes;
     },
   );
+
+  ipcMain.handle("criteria:upsert", (_e, index: number, label: string) => {
+    const store = loadStore(userData());
+    if (!store.project) {
+      store.project = {
+        workbookPath: "",
+        workbookSheets: [],
+        codes: [],
+        sessions: [],
+      };
+    }
+    const trimmed = label.trim();
+    const sheets = store.project.workbookSheets ?? [];
+    const parent = trimmed ? codeParentSafe(trimmed) : null;
+    const list = store.project.codes;
+
+    if (index >= 0 && index < list.length) {
+      if (!trimmed) {
+        list.splice(index, 1);
+      } else {
+        // Avoid duplicate labels
+        const dup = list.findIndex(
+          (c, i) => i !== index && c.sheetName === trimmed,
+        );
+        if (dup >= 0) {
+          list[dup].key = list[dup].key ?? list[index].key;
+          list.splice(index, 1);
+        } else {
+          list[index].sheetName = trimmed;
+          list[index].parent = parent;
+          if (sheets.includes(trimmed)) {
+            /* workbook match — rowCount stays unless known */
+          }
+        }
+      }
+    } else if (trimmed && list.length < 8) {
+      if (!list.some((c) => c.sheetName === trimmed)) {
+        list.push({
+          sheetName: trimmed,
+          parent,
+          rowCount: 0,
+          key: null,
+        });
+      }
+    }
+    store.project.codes = list.filter((c) => c.sheetName.trim());
+    codes = store.project.codes;
+    saveStore(userData(), store);
+    return store.project.codes;
+  });
+
+  ipcMain.handle("criteria:remove", (_e, index: number) => {
+    const store = loadStore(userData());
+    if (!store.project) return null;
+    if (index < 0 || index >= store.project.codes.length) {
+      return store.project.codes;
+    }
+    store.project.codes.splice(index, 1);
+    codes = store.project.codes;
+    saveStore(userData(), store);
+    return store.project.codes;
+  });
 
   ipcMain.handle(
     "session:start",

@@ -519,3 +519,179 @@ h3 {
 .ribbon .tick[data-slot="general"] {
   background: var(--accent-ink, #4d86dc);
 }
+
+/* Criteria + controller setup */
+.criteria-list,
+.pad-list {
+  list-style: none;
+  margin: var(--s3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+.criteria-row,
+.pad-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s2) var(--s3);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+}
+.criteria-row.is-dragging {
+  opacity: 0.55;
+}
+.criteria-drag {
+  color: var(--ink-3);
+  cursor: grab;
+  font: 600 var(--t-sm) var(--font-mono);
+  user-select: none;
+}
+.criteria-input {
+  flex: 1;
+  min-width: 0;
+  font: 400 var(--t-md) var(--font-sans);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+}
+.criteria-key {
+  color: var(--ink-3);
+  min-width: 3.5rem;
+  text-align: right;
+}
+.pad-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.pad-item.on {
+  border-color: var(--accent-dim);
+  box-shadow: inset 0 0 0 1px var(--accent-dim);
+}
+.controller-status {
+  color: var(--ink-2);
+  margin: var(--s3) 0;
+}
+.controller-status.is-warn {
+  color: var(--warn, #e0a45a);
+}
+.layout-head {
+  justify-content: space-between;
+  align-items: center;
+}
+.layout-head h2 {
+  margin: 0;
+}
+.layer-toggle {
+  display: flex;
+  gap: var(--s2);
+}
+.pad-visual {
+  margin-top: var(--s4);
+  padding: var(--s4);
+  border-radius: var(--r-md, 12px);
+  background:
+    radial-gradient(80% 70% at 50% 0%, #1a2a36 0%, transparent 60%),
+    var(--surface-sunken);
+  border: 1px solid var(--line);
+}
+.pad-shoulders {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+}
+.pad-body {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: var(--s4);
+  align-items: center;
+}
+.pad-faces {
+  display: grid;
+  grid-template-areas:
+    ". face-n ."
+    "face-w . face-e"
+    ". face-s .";
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--s2);
+  max-width: 280px;
+  margin-left: auto;
+}
+.pad-drop.face-n {
+  grid-area: face-n;
+}
+.pad-drop.face-w {
+  grid-area: face-w;
+}
+.pad-drop.face-e {
+  grid-area: face-e;
+}
+.pad-drop.face-s {
+  grid-area: face-s;
+}
+.pad-drop,
+.pad-fixed {
+  min-height: 64px;
+  padding: var(--s2);
+  border-radius: var(--r-sm);
+  border: 1px dashed var(--line-strong);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+}
+.pad-fixed {
+  border-style: solid;
+  color: var(--ink-3);
+  font: 500 var(--t-xs) var(--font-mono);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  align-items: center;
+  text-align: center;
+}
+.pad-drop.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.pad-drop-slot {
+  color: var(--accent-strong);
+  font-size: var(--t-xs);
+}
+.pad-drop-label {
+  font: 500 var(--t-sm) var(--font-sans);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pad-drop-clear {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  border: none;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  font: 600 var(--t-sm) var(--font-sans);
+}
+@media (max-width: 720px) {
+  .pad-body {
+    grid-template-columns: 1fr;
+  }
+  .pad-faces {
+    margin: 0 auto;
+  }
+  .pad-shoulders {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -1,14 +1,21 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { Session, Code, Mark } from "../../src/model/types";
+import type { ControllerProfileId } from "../../src/input/controller-profiles";
 
 export interface InterviewAPI {
   loadStore: () => Promise<unknown>;
   pickWorkbook: () => Promise<{
     path?: string;
     codes?: Code[];
+    workbookSheets?: string[];
     error?: string;
   } | null>;
   assignKey: (sheetName: string, key: string | null) => Promise<Code[] | null>;
+  upsertCriterion: (index: number, label: string) => Promise<Code[] | null>;
+  removeCriterion: (index: number) => Promise<Code[] | null>;
+  getAssignedGamepad: () => Promise<string | null>;
+  setAssignedGamepad: (id: string | null) => Promise<string | null>;
+  openBluetoothSettings: () => Promise<boolean>;
   startSession: (payload: {
     participantNumber: string;
     interviewNumber: string;
@@ -23,7 +30,11 @@ export interface InterviewAPI {
   appendExcel: () => Promise<unknown>;
   exportCodebook: () => Promise<unknown>;
   saturation: () => Promise<unknown>;
-  sendGamepad: (buttons: boolean[], l1: boolean) => Promise<unknown>;
+  sendGamepad: (
+    buttons: boolean[],
+    l1: boolean,
+    profileId?: ControllerProfileId,
+  ) => Promise<unknown>;
   onMark: (
     cb: (payload: { mark: Mark; session: Session }) => void,
   ) => () => void;
@@ -36,6 +47,12 @@ const api: InterviewAPI = {
   pickWorkbook: () => ipcRenderer.invoke("workbook:pick"),
   assignKey: (sheetName, key) =>
     ipcRenderer.invoke("codes:assignKey", sheetName, key),
+  upsertCriterion: (index, label) =>
+    ipcRenderer.invoke("criteria:upsert", index, label),
+  removeCriterion: (index) => ipcRenderer.invoke("criteria:remove", index),
+  getAssignedGamepad: () => ipcRenderer.invoke("controller:getAssigned"),
+  setAssignedGamepad: (id) => ipcRenderer.invoke("controller:setAssigned", id),
+  openBluetoothSettings: () => ipcRenderer.invoke("controller:openBluetooth"),
   startSession: (payload) => ipcRenderer.invoke("session:start", payload),
   setArmed: (on) => ipcRenderer.invoke("session:arm", on),
   getSession: (id) => ipcRenderer.invoke("session:get", id),
@@ -45,8 +62,8 @@ const api: InterviewAPI = {
   appendExcel: () => ipcRenderer.invoke("excel:append"),
   exportCodebook: () => ipcRenderer.invoke("codebook:export"),
   saturation: () => ipcRenderer.invoke("saturation:list"),
-  sendGamepad: (buttons, l1) =>
-    ipcRenderer.invoke("gamepad:buttons", buttons, l1),
+  sendGamepad: (buttons, l1, profileId) =>
+    ipcRenderer.invoke("gamepad:buttons", buttons, l1, profileId),
   onMark: (cb) => {
     const fn = (_: unknown, payload: { mark: Mark; session: Session }) =>
       cb(payload);

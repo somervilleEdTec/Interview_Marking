@@ -6,12 +6,15 @@ export interface AppStore {
   project: Project | null;
   activeSessionId: string | null;
   saturation: SaturationEvent[];
+  /** Gamepad.id of the pad assigned for marking. */
+  assignedGamepadId: string | null;
 }
 
 const empty = (): AppStore => ({
   project: null,
   activeSessionId: null,
   saturation: [],
+  assignedGamepadId: null,
 });
 
 export function storePath(userData: string): string {
@@ -22,7 +25,13 @@ export function loadStore(userData: string): AppStore {
   const p = storePath(userData);
   if (!existsSync(p)) return empty();
   try {
-    return JSON.parse(readFileSync(p, "utf8")) as AppStore;
+    const raw = JSON.parse(readFileSync(p, "utf8")) as Partial<AppStore>;
+    return {
+      ...empty(),
+      ...raw,
+      assignedGamepadId: raw.assignedGamepadId ?? null,
+      saturation: raw.saturation ?? [],
+    };
   } catch {
     return empty();
   }

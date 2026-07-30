@@ -1,11 +1,26 @@
 import type { Code } from "../model/types";
 import { CODE_SLOTS } from "../model/types";
+import type { DetectedPad } from "../input/gamepad-detect";
+import type { ControllerProfile } from "../input/controller-profiles";
+import { profileById } from "../input/controller-profiles";
+import { renderCriteriaEditor } from "./criteria-editor";
+import { renderControllerPanel } from "./controller-panel";
+import { renderControllerLayout } from "./controller-layout";
 
 export interface SetupProps {
   codes: Code[];
   workbookPath: string;
+  sheetSuggestions: string[];
+  pads: DetectedPad[];
+  assignedGamepadId: string | null;
+  layoutLayer: "primary" | "secondary";
   onPickWorkbook: () => void;
   onAssignKey: (sheetName: string, key: string | null) => void;
+  onUpsertCriterion: (index: number, label: string) => void;
+  onRemoveCriterion: (index: number) => void;
+  onAssignGamepad: (id: string | null) => void;
+  onOpenBluetooth: () => void;
+  onLayoutLayer: (layer: "primary" | "secondary") => void;
   onStart: (
     participantNumber: string,
     interviewNumber: string,
@@ -16,11 +31,19 @@ export interface SetupProps {
 
 export function renderSetup(root: HTMLElement, props: SetupProps): void {
   const assigned = new Set(props.codes.filter((c) => c.key).map((c) => c.key));
+  const boundCount = props.codes.filter(
+    (c) => c.key && c.sheetName.trim(),
+  ).length;
+  const profile: ControllerProfile =
+    props.pads.find((p) => p.id === props.assignedGamepadId)?.profile ??
+    props.pads[0]?.profile ??
+    profileById("standard");
+
   root.className = "stage stage--setup";
   root.innerHTML = `
     <section class="panel panel--wide">
       <h1>Setup</h1>
-      <p class="lede">Open your coding workbook, assign up to eight codes to home-row keys, then start with the Zoom recording.</p>
+      <p class="lede">Open your coding workbook, type criteria, assign them to controller buttons (or home-row keys), then start with the Zoom recording.</p>
       <div class="row">
         <button type="button" class="btn btn--primary" id="pick-wb">Choose workbook</button>
         <span class="mono path">${props.workbookPath || "No workbook selected"}</span>
@@ -31,13 +54,16 @@ export function renderSetup(root: HTMLElement, props: SetupProps): void {
         <label class="field">Window before (s) <input id="before" type="number" value="45" /></label>
         <label class="field">Window after (s) <input id="after" type="number" value="15" /></label>
       </div>
-      <button type="button" class="btn btn--primary" id="start" ${props.codes.length ? "" : "disabled"}>
+      <button type="button" class="btn btn--primary" id="start" ${boundCount ? "" : "disabled"}>
         Start session (arm marking)
       </button>
     </section>
+    <div id="criteria-host"></div>
+    <div id="controller-host"></div>
+    <div id="layout-host"></div>
     <section class="panel">
-      <h2>Codes</h2>
-      <p class="hint">Click a key to bind. Max eight. Sorted by existing row count.</p>
+      <h2>Keyboard mirror</h2>
+      <p class="hint">Same bindings as the controller map. Click a key to bind the criterion named in the row.</p>
       <ul class="code-list">
         ${
           props.codes
@@ -57,11 +83,37 @@ export function renderSetup(root: HTMLElement, props: SetupProps): void {
             </li>`;
             })
             .join("") ||
-          '<li class="ink-3">Load a workbook to see worksheets.</li>'
+          '<li class="ink-3">Type criteria above to bind keys.</li>'
         }
       </ul>
     </section>
   `;
+
+  const criteriaHost = root.querySelector("#criteria-host") as HTMLElement;
+  renderCriteriaEditor(criteriaHost, {
+    codes: props.codes,
+    sheetSuggestions: props.sheetSuggestions,
+    onUpsert: props.onUpsertCriterion,
+    onRemove: props.onRemoveCriterion,
+  });
+
+  const controllerHost = root.querySelector("#controller-host") as HTMLElement;
+  renderControllerPanel(controllerHost, {
+    pads: props.pads,
+    assignedId: props.assignedGamepadId,
+    onAssign: props.onAssignGamepad,
+    onOpenBluetooth: props.onOpenBluetooth,
+  });
+
+  const layoutHost = root.querySelector("#layout-host") as HTMLElement;
+  renderControllerLayout(layoutHost, {
+    profile,
+    codes: props.codes,
+    layer: props.layoutLayer,
+    onLayer: props.onLayoutLayer,
+    onAssignKey: props.onAssignKey,
+  });
+
   root
     .querySelector("#pick-wb")
     ?.addEventListener("click", () => props.onPickWorkbook());

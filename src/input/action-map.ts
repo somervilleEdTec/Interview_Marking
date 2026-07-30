@@ -1,4 +1,10 @@
 import type { MarkSlot } from "../model/types";
+import {
+  PRIMARY_SLOT_INDICES,
+  PRIMARY_SLOTS,
+  SECONDARY_SLOTS,
+  type ControllerProfile,
+} from "./controller-profiles";
 
 export type MarkAction =
   | { type: "code"; slot: Exclude<MarkSlot, "general" | "nofit"> }
@@ -21,39 +27,28 @@ export const KEYBOARD_MAP: Record<string, MarkAction> = {
   Backspace: { type: "undo" },
 };
 
-/** DualSense-style: face buttons + L1 overlay for second four; L2/R2; Circle undo. */
+/**
+ * Map gamepad button edges → mark action.
+ * Uses DualSense/standard indices by default; pass a profile for explicit roles.
+ */
 export function gamepadAction(
   buttons: readonly boolean[],
   l1Held: boolean,
+  profile?: ControllerProfile,
 ): MarkAction | null {
-  // Standard mapping approx: 0 Cross, 1 Circle, 2 Square, 3 Triangle, 4 L1, 5 R1, 6 L2, 7 R2
-  if (buttons[1]) return { type: "undo" };
-  if (buttons[6]) return { type: "general" };
-  if (buttons[7]) return { type: "nofit" };
-  const face = [
-    buttons[2], // Square
-    buttons[3], // Triangle
-    buttons[0], // Cross
-    buttons[5], // R1 as 4th when no L1 — also use face set
-  ];
-  // Prefer: Square, Triangle, Cross, Circle-alt via R1 when !L1 for first four
-  const primary: Array<Exclude<MarkSlot, "general" | "nofit">> = [
-    "A",
-    "S",
-    "D",
-    "F",
-  ];
-  const secondary: Array<Exclude<MarkSlot, "general" | "nofit">> = [
-    "J",
-    "K",
-    "L",
-    ";",
-  ];
-  const slots = l1Held ? secondary : primary;
-  const pressed = [buttons[2], buttons[3], buttons[0], buttons[5]];
+  const undoIdx =
+    profile?.buttons.find((b) => b.role.kind === "undo")?.index ?? 1;
+  const generalIdx = profile?.triggerIndices.general ?? 6;
+  const nofitIdx = profile?.triggerIndices.nofit ?? 7;
+
+  if (buttons[undoIdx]) return { type: "undo" };
+  if (buttons[generalIdx]) return { type: "general" };
+  if (buttons[nofitIdx]) return { type: "nofit" };
+
+  const activeSlots = l1Held ? SECONDARY_SLOTS : PRIMARY_SLOTS;
+  const pressed = PRIMARY_SLOT_INDICES.map((i) => buttons[i]);
   for (let i = 0; i < 4; i++) {
-    if (pressed[i]) return { type: "code", slot: slots[i] };
+    if (pressed[i]) return { type: "code", slot: activeSlots[i] };
   }
-  void face;
   return null;
 }

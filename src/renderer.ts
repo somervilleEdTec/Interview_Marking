@@ -5,6 +5,11 @@ import { renderSetup } from "./screens/setup";
 import { renderMarking } from "./screens/marking";
 import { renderReview } from "./screens/review";
 import { renderResolve } from "./screens/resolve";
+import { listConnectedPads, resolveAssignedPad } from "./input/gamepad-detect";
+import {
+  readPadButtons,
+  shouldSuppressGamepadMarks,
+} from "./input/gamepad-gate";
 
 type Screen = "setup" | "marking" | "review" | "resolve";
 
@@ -12,11 +17,15 @@ const state = {
   screen: "setup" as Screen,
   codes: [] as Code[],
   workbookPath: "" as string,
+  sheetSuggestions: [] as string[],
   session: null as Session | null,
   armed: false,
   flashSlot: null as string | null,
   ticks: [] as { id: string; slot: string }[],
   averageMarks: 0,
+  assignedGamepadId: null as string | null,
+  layoutLayer: "primary" as "primary" | "secondary",
+  pads: [] as ReturnType<typeof listConnectedPads>,
 };
 
 const stage = () => document.querySelector(".stage") as HTMLElement;
@@ -32,21 +41,46 @@ function averageMarks(sessions: Session[]): number {
   );
 }
 
+function refreshPads(): void {
+  state.pads = listConnectedPads(navigator.getGamepads?.() ?? []);
+}
+
+function padStatusText(): { text: string; on: boolean } {
+  const assigned = resolveAssignedPad(state.pads, state.assignedGamepadId);
+  if (!state.pads.length) return { text: "No controller", on: false };
+  if (state.assignedGamepadId && !assigned) {
+    return { text: "Pad disconnected", on: false };
+  }
+  if (assigned) {
+    return {
+      text: `${assigned.profile.displayName.split(" ")[0]} · ${assigned.label.slice(0, 28)}`,
+      on: true,
+    };
+  }
+  return { text: "Controller connected", on: true };
+}
+
 async function bootstrap(): Promise<void> {
   const store = (await window.interview.loadStore()) as {
     project?: {
       workbookPath: string;
+      workbookSheets?: string[];
       codes: Code[];
       sessions: Session[];
     } | null;
+    assignedGamepadId?: string | null;
   };
   if (store.project) {
     state.workbookPath = store.project.workbookPath;
     state.codes = store.project.codes;
+    state.sheetSuggestions =
+      store.project.workbookSheets ??
+      store.project.codes.map((c) => c.sheetName);
     state.averageMarks = averageMarks(store.project.sessions);
     const last = store.project.sessions.at(-1);
     if (last) state.session = last;
   }
+  state.assignedGamepadId = store.assignedGamepadId ?? null;
 
   window.interview.onMark(
     ({ mark, session }: { mark: Mark; session: Session }) => {
@@ -72,22 +106,68 @@ async function bootstrap(): Promise<void> {
     paint();
   });
 
-  // DualSense keepalive: poll Gamepad API and forward edge presses to main
+  window.addEventListener("gamepadconnected", () => {
+    refreshPads();
+    if (state.screen === "setup") paint();
+  });
+  window.addEventListener("gamepaddisconnected", () => {
+    refreshPads();
+    if (state.screen === "setup") paint();
+  });
+
   let prev: boolean[] = [];
+  let lastSetupPadsSig = "";
   setInterval(() => {
-    const pads = navigator.getGamepads?.() ?? [];
-    const pad = pads[0];
+    refreshPads();
+    const assigned = resolveAssignedPad(state.pads, state.assignedGamepadId);
+    const status = padStatusText();
     const connectedEl = document.getElementById("pad-status");
     if (connectedEl) {
-      connectedEl.textContent = pad ? "Controller connected" : "No controller";
-      connectedEl.dataset.on = pad ? "1" : "0";
+      connectedEl.textContent = status.text;
+      connectedEl.dataset.on = status.on ? "1" : "0";
     }
-    if (!pad || !state.armed) return;
-    const buttons = pad.buttons.map((b) => b.pressed);
-    const l1 = !!pad.buttons[4]?.pressed;
+
+    // Refresh Setup pad list when connectivity changes (without fighting text focus)
+    if (state.screen === "setup") {
+      const sig = state.pads.map((p) => p.id).join("|");
+      if (
+        sig !== lastSetupPadsSig &&
+        !shouldSuppressGamepadMarks(document.activeElement)
+      ) {
+        lastSetupPadsSig = sig;
+        paint();
+        return;
+      }
+      lastSetupPadsSig = sig;
+    }
+
+    if (!assigned || !state.armed) {
+      prev = [];
+      return;
+    }
+    if (shouldSuppressGamepadMarks(document.activeElement)) {
+      prev = [];
+      return;
+    }
+
+    const rawPads = navigator.getGamepads?.() ?? [];
+    const pad =
+      rawPads[assigned.index] ?? rawPads.find((p) => p?.id === assigned.id);
+    if (!pad) {
+      prev = [];
+      return;
+    }
+
+    const buttons = readPadButtons(
+      pad.buttons,
+      assigned.profile.triggerIndices,
+    );
+    const l1 = !!pad.buttons[assigned.profile.modifierIndex]?.pressed;
     const changed = buttons.some((b, i) => b && !prev[i]);
     prev = buttons;
-    if (changed) void window.interview.sendGamepad(buttons, l1);
+    if (changed) {
+      void window.interview.sendGamepad(buttons, l1, assigned.profileId);
+    }
   }, 32);
 
   paint();
@@ -99,6 +179,8 @@ function navigate(screen: Screen): void {
 }
 
 function paint(): void {
+  refreshPads();
+  const status = padStatusText();
   const tb = topbar();
   tb.innerHTML = `
     <span class="eyebrow">Interview Marking</span>
@@ -108,7 +190,7 @@ function paint(): void {
       <button type="button" data-nav="review" class="${state.screen === "review" ? "active" : ""}">Review</button>
       <button type="button" data-nav="resolve" class="${state.screen === "resolve" ? "active" : ""}">Transcript</button>
     </nav>
-    <span id="pad-status" class="pad-status" data-on="0">No controller</span>
+    <span id="pad-status" class="pad-status" data-on="${status.on ? "1" : "0"}">${status.text}</span>
   `;
   tb.querySelectorAll("[data-nav]").forEach((btn) => {
     btn.addEventListener("click", () =>
@@ -121,6 +203,10 @@ function paint(): void {
     renderSetup(el, {
       codes: state.codes,
       workbookPath: state.workbookPath,
+      sheetSuggestions: state.sheetSuggestions,
+      pads: state.pads,
+      assignedGamepadId: state.assignedGamepadId,
+      layoutLayer: state.layoutLayer,
       onPickWorkbook: async () => {
         const res = await window.interview.pickWorkbook();
         if (!res) return;
@@ -130,11 +216,33 @@ function paint(): void {
         }
         state.workbookPath = res.path ?? "";
         state.codes = res.codes ?? [];
+        state.sheetSuggestions = res.workbookSheets ?? state.sheetSuggestions;
         paint();
       },
       onAssignKey: async (sheetName, key) => {
         const codes = await window.interview.assignKey(sheetName, key);
         if (codes) state.codes = codes;
+        paint();
+      },
+      onUpsertCriterion: async (index, label) => {
+        const codes = await window.interview.upsertCriterion(index, label);
+        if (codes) state.codes = codes;
+        paint();
+      },
+      onRemoveCriterion: async (index) => {
+        const codes = await window.interview.removeCriterion(index);
+        if (codes) state.codes = codes;
+        paint();
+      },
+      onAssignGamepad: async (id) => {
+        state.assignedGamepadId = await window.interview.setAssignedGamepad(id);
+        paint();
+      },
+      onOpenBluetooth: () => {
+        void window.interview.openBluetoothSettings();
+      },
+      onLayoutLayer: (layer) => {
+        state.layoutLayer = layer;
         paint();
       },
       onStart: async (participantNumber, interviewNumber, before, after) => {

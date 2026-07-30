@@ -65,6 +65,8 @@ export interface Session {
 
 export interface Project {
   workbookPath: string;
+  /** Worksheet names from the last workbook pick — used as criteria suggestions. */
+  workbookSheets?: string[];
   codes: Code[];
   sessions: Session[];
 }
