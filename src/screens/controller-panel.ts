@@ -45,7 +45,7 @@ export function renderControllerPanel(
               return `<li class="pad-item ${on ? "on" : ""}">
                 <div class="pad-meta">
                   <strong title="${escapeAttr(p.id)}">${escapeHtml(p.profile.displayName)}</strong>
-                  <span class="ink-3">${escapeHtml(p.label === p.profile.displayName ? p.mapping || "connected" : p.label)}</span>
+                  <span class="ink-3">Pad ${p.index + 1}</span>
                 </div>
                 <button type="button" class="btn btn--primary pad-assign" data-id="${escapeAttr(p.id)}" ${on ? "disabled" : ""}>
                   ${on ? "Assigned" : "Assign to marking"}
