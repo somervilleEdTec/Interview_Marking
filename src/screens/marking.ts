@@ -1,5 +1,6 @@
 import type { Code, Session } from "../model/types";
 import { CODE_SLOTS } from "../model/types";
+import { elapsedSinceStart, formatInterviewTime } from "../model/time";
 
 export interface MarkingProps {
   codes: Code[];
@@ -10,14 +11,8 @@ export interface MarkingProps {
   onEnd: () => void;
 }
 
-function elapsed(iso: string | undefined): string {
-  if (!iso) return "00:00:00";
-  const ms = Date.now() - Date.parse(iso);
-  const s = Math.max(0, Math.floor(ms / 1000));
-  const h = String(Math.floor(s / 3600)).padStart(2, "0");
-  const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
-  const sec = String(s % 60).padStart(2, "0");
-  return `${h}:${m}:${sec}`;
+function clockText(startedAt: string | undefined): string {
+  return formatInterviewTime(elapsedSinceStart(startedAt));
 }
 
 export function renderMarking(root: HTMLElement, props: MarkingProps): void {
@@ -33,7 +28,7 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
     <section class="mark-main">
       <div class="status-row">
         <span class="status ${props.armed ? "status--live" : ""}">${props.armed ? "Armed" : "Paused"}</span>
-        <span class="mono clock" id="clock">${elapsed(props.session?.startedAt)}</span>
+        <span class="mono clock" id="clock">${clockText(props.session?.startedAt)}</span>
         <span class="meta">${props.session?.participantNumber ?? "—"} · ${props.session?.interviewNumber ?? "—"} · ${total} marks</span>
       </div>
       <div class="tiles">
@@ -64,13 +59,13 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
         <button type="button" class="btn" id="toggle-arm">${props.armed ? "Disarm" : "Arm"} shortcuts</button>
         <button type="button" class="btn btn--primary" id="end-session">End session → Review</button>
       </div>
-      <p class="hint">Backspace undoes last mark. No sound. Keep eyes on the participant.</p>
+      <p class="hint">Interview clock starts at 0:00. Backspace undoes last mark. No sound. Keep eyes on the participant.</p>
     </section>
   `;
 
   const clock = root.querySelector("#clock");
   const timer = window.setInterval(() => {
-    if (clock) clock.textContent = elapsed(props.session?.startedAt);
+    if (clock) clock.textContent = clockText(props.session?.startedAt);
   }, 250);
   root.querySelector("#toggle-arm")?.addEventListener("click", () => {
     clearInterval(timer);

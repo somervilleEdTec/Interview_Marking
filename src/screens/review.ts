@@ -1,4 +1,5 @@
 import type { Code, Session } from "../model/types";
+import { formatInterviewTime, markAtToMs } from "../model/time";
 
 export interface ReviewProps {
   session: Session | null;
@@ -19,14 +20,17 @@ export function renderReview(root: HTMLElement, props: ReviewProps): void {
   root.innerHTML = `
     <section class="panel panel--wide">
       <h1>Review</h1>
-      <p class="lede">This session: <strong>${kept}</strong> marks · running average: <strong>${props.averageMarks.toFixed(1)}</strong></p>
-      <label class="field">Global recording offset (seconds)
+      <p class="lede">This session: <strong>${kept}</strong> marks · running average: <strong>${props.averageMarks.toFixed(1)}</strong>. Times are minutes:seconds from interview start (0:00).</p>
+      <label class="field">Alignment offset (seconds)
         <input id="offset" type="number" step="0.1" value="${session.recordingOffsetSec}" />
       </label>
+      <p class="hint">Shift all marks on the recording/transcript timeline without changing when they were pressed in the interview.</p>
       <ul class="mark-list">
         ${session.marks
           .map((m, idx) => {
-            const time = new Date(m.at).toLocaleTimeString();
+            const time = formatInterviewTime(
+              markAtToMs(m.at, session.startedAt),
+            );
             return `<li class="${m.dropped ? "dropped" : ""}" data-id="${m.id}">
               <span class="mono">${time}</span>
               <span class="chip">${m.slot}</span>

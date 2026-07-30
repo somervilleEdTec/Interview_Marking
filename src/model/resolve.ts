@@ -1,14 +1,12 @@
 import type { Mark, Session, TimeWindow, TranscriptLine } from "./types";
+import { markAtToMs } from "./time";
 
-/** Convert wall-clock mark time into recording-relative ms. */
+/** Mark interview time → recording timeline ms (plus manual alignment offset). */
 export function markToRecordingMs(
-  markAtIso: string,
-  sessionStartedAtIso: string,
+  markAtMs: number,
   recordingOffsetSec: number,
 ): number {
-  const markMs = Date.parse(markAtIso);
-  const startMs = Date.parse(sessionStartedAtIso);
-  return markMs - startMs + recordingOffsetSec * 1000;
+  return markAtMs + recordingOffsetSec * 1000;
 }
 
 export function resolveMarkLines(
@@ -17,11 +15,8 @@ export function resolveMarkLines(
   transcript: TranscriptLine[],
 ): { lineStart: number; lineEnd: number; text: string } | null {
   if (!transcript.length) return null;
-  const center = markToRecordingMs(
-    mark.at,
-    session.startedAt,
-    session.recordingOffsetSec,
-  );
+  const atMs = markAtToMs(mark.at, session.startedAt);
+  const center = markToRecordingMs(atMs, session.recordingOffsetSec);
   const from = center - mark.window.before * 1000;
   const to = center + mark.window.after * 1000;
   const lines = transcript.filter((l) => l.endMs >= from && l.startMs <= to);

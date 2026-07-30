@@ -34,6 +34,7 @@ import {
 import { parseTranscriptFile } from "../../src/transcript/parse";
 import { writeNumberedDocx } from "../../src/transcript/docx";
 import { resolveMarkLines, DEFAULT_WINDOW } from "../../src/model/resolve";
+import { elapsedSinceStart } from "../../src/model/time";
 import type { Mark, Session, MarkSlot, Code } from "../../src/model/types";
 import { codeParent } from "../../src/model/hierarchy";
 import { canSendToWindow } from "./safe-send";
@@ -83,9 +84,12 @@ function handleAction(action: MarkAction): void {
       : action.type === "general"
         ? "general"
         : "nofit";
+  const store = loadStore(userData());
+  const live = store.project?.sessions.find((s) => s.id === activeSessionId);
+  const atMs = elapsedSinceStart(live?.startedAt);
   const mark: Mark = {
     id: randomUUID(),
-    at: new Date().toISOString(),
+    at: atMs,
     slot,
     codeRef: slotToCode(slot),
     window: { ...DEFAULT_WINDOW },
