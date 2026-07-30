@@ -342,7 +342,6 @@ textarea:focus {
   color: var(--ink-3);
 }
 .field input,
-.mark-list input,
 .mark-list select,
 .resolve-list input {
   font: 400 var(--t-md) var(--font-sans);
