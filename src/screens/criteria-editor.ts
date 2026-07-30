@@ -3,6 +3,7 @@ import type { Code } from "../model/types";
 export interface CriteriaEditorProps {
   codes: Code[];
   sheetSuggestions: string[];
+  bindHint?: string;
   onUpsert: (index: number, label: string) => void;
   onRemove: (index: number) => void;
 }
@@ -25,7 +26,7 @@ export function renderCriteriaEditor(
   root.innerHTML = `
     <section class="panel panel--wide" id="criteria-panel">
       <h2>Criteria</h2>
-      <p class="hint">Type up to eight criteria. Drag a filled row onto a controller button to bind it. Workbook sheets appear as suggestions when a workbook is loaded.</p>
+      <p class="hint">${escapeAttr(props.bindHint ?? "Type up to eight criteria, then drag a filled row onto a button or key to bind it.")} Workbook sheets appear as suggestions when a workbook is loaded.</p>
       <datalist id="sheet-suggestions">
         ${props.sheetSuggestions.map((s) => `<option value="${escapeAttr(s)}"></option>`).join("")}
       </datalist>

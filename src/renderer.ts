@@ -2,6 +2,7 @@ import "./styles/app.css";
 import type { Code, Session, Mark } from "./model/types";
 import { resolveMarkLines } from "./model/resolve";
 import { renderSetup } from "./screens/setup";
+import type { InputMode } from "./screens/controller-layout";
 import { renderMarking } from "./screens/marking";
 import { renderReview } from "./screens/review";
 import { renderResolve } from "./screens/resolve";
@@ -24,7 +25,7 @@ const state = {
   ticks: [] as { id: string; slot: string }[],
   averageMarks: 0,
   assignedGamepadId: null as string | null,
-  layoutLayer: "primary" as "primary" | "secondary",
+  inputMode: "controller" as InputMode,
   pads: [] as ReturnType<typeof listConnectedPads>,
 };
 
@@ -206,7 +207,7 @@ function paint(): void {
       sheetSuggestions: state.sheetSuggestions,
       pads: state.pads,
       assignedGamepadId: state.assignedGamepadId,
-      layoutLayer: state.layoutLayer,
+      inputMode: state.inputMode,
       onPickWorkbook: async () => {
         const res = await window.interview.pickWorkbook();
         if (!res) return;
@@ -241,8 +242,8 @@ function paint(): void {
       onOpenBluetooth: () => {
         void window.interview.openBluetoothSettings();
       },
-      onLayoutLayer: (layer) => {
-        state.layoutLayer = layer;
+      onInputMode: (mode) => {
+        state.inputMode = mode;
         paint();
       },
       onStart: async (participantNumber, interviewNumber, before, after) => {

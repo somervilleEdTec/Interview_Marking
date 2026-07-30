@@ -1,11 +1,11 @@
 import type { Code } from "../model/types";
-import { CODE_SLOTS } from "../model/types";
 import type { DetectedPad } from "../input/gamepad-detect";
 import type { ControllerProfile } from "../input/controller-profiles";
 import { profileById } from "../input/controller-profiles";
 import { renderCriteriaEditor } from "./criteria-editor";
 import { renderControllerPanel } from "./controller-panel";
 import { renderControllerLayout } from "./controller-layout";
+import type { InputMode } from "./controller-layout";
 
 export interface SetupProps {
   codes: Code[];
@@ -13,14 +13,14 @@ export interface SetupProps {
   sheetSuggestions: string[];
   pads: DetectedPad[];
   assignedGamepadId: string | null;
-  layoutLayer: "primary" | "secondary";
+  inputMode: InputMode;
   onPickWorkbook: () => void;
   onAssignKey: (sheetName: string, key: string | null) => void;
   onUpsertCriterion: (index: number, label: string) => void;
   onRemoveCriterion: (index: number) => void;
   onAssignGamepad: (id: string | null) => void;
   onOpenBluetooth: () => void;
-  onLayoutLayer: (layer: "primary" | "secondary") => void;
+  onInputMode: (mode: InputMode) => void;
   onStart: (
     participantNumber: string,
     interviewNumber: string,
@@ -30,7 +30,6 @@ export interface SetupProps {
 }
 
 export function renderSetup(root: HTMLElement, props: SetupProps): void {
-  const assigned = new Set(props.codes.filter((c) => c.key).map((c) => c.key));
   const boundCount = props.codes.filter(
     (c) => c.key && c.sheetName.trim(),
   ).length;
@@ -58,61 +57,49 @@ export function renderSetup(root: HTMLElement, props: SetupProps): void {
         Start session (arm marking)
       </button>
     </section>
-    <div id="criteria-host"></div>
-    <div id="controller-host"></div>
-    <div id="layout-host"></div>
-    <section class="panel">
-      <h2>Criteria</h2>
-      <p class="hint">Same bindings as the controller map. Click a key to bind the criterion named in the row.</p>
-      <ul class="code-list">
-        ${
-          props.codes
-            .map((c) => {
-              const keys = CODE_SLOTS.map(
-                (k) =>
-                  `<button type="button" class="key-chip ${c.key === k ? "on" : ""} ${assigned.has(k) && c.key !== k ? "taken" : ""}" data-sheet="${c.sheetName}" data-key="${k}" ${assigned.has(k) && c.key !== k ? "disabled" : ""}>${k}</button>`,
-              ).join("");
-              return `<li>
-              <div class="code-meta">
-                <strong>${c.sheetName}</strong>
-                <span class="ink-3">${c.parent ? "↳ " + c.parent : "top"} · ${c.rowCount} rows</span>
-              </div>
-              <div class="key-row">${keys}
-                <button type="button" class="key-chip clear" data-sheet="${c.sheetName}" data-key="">✕</button>
-              </div>
-            </li>`;
-            })
-            .join("") ||
-          '<li class="ink-3">Type criteria above to bind keys.</li>'
-        }
-      </ul>
-    </section>
+    <div class="setup-bind-row">
+      <div id="criteria-host"></div>
+      <div class="setup-bind-col">
+        <div id="layout-host"></div>
+        ${props.inputMode === "controller" ? '<div id="controller-host"></div>' : ""}
+      </div>
+    </div>
   `;
 
   const criteriaHost = root.querySelector("#criteria-host") as HTMLElement;
   renderCriteriaEditor(criteriaHost, {
     codes: props.codes,
     sheetSuggestions: props.sheetSuggestions,
+    bindHint:
+      props.inputMode === "keyboard"
+        ? "Type up to eight criteria, then drag a filled row onto a home-row key — or pick it from that key's list."
+        : props.pads.length
+          ? "Type up to eight criteria, then drag a filled row onto a controller button."
+          : "Type up to eight criteria. No controller? Switch the button map to Keyboard to bind home-row keys.",
     onUpsert: props.onUpsertCriterion,
     onRemove: props.onRemoveCriterion,
-  });
-
-  const controllerHost = root.querySelector("#controller-host") as HTMLElement;
-  renderControllerPanel(controllerHost, {
-    pads: props.pads,
-    assignedId: props.assignedGamepadId,
-    onAssign: props.onAssignGamepad,
-    onOpenBluetooth: props.onOpenBluetooth,
   });
 
   const layoutHost = root.querySelector("#layout-host") as HTMLElement;
   renderControllerLayout(layoutHost, {
     profile,
     codes: props.codes,
-    layer: props.layoutLayer,
-    onLayer: props.onLayoutLayer,
+    mode: props.inputMode,
+    onMode: props.onInputMode,
     onAssignKey: props.onAssignKey,
   });
+
+  const controllerHost = root.querySelector(
+    "#controller-host",
+  ) as HTMLElement | null;
+  if (controllerHost) {
+    renderControllerPanel(controllerHost, {
+      pads: props.pads,
+      assignedId: props.assignedGamepadId,
+      onAssign: props.onAssignGamepad,
+      onOpenBluetooth: props.onOpenBluetooth,
+    });
+  }
 
   root
     .querySelector("#pick-wb")
@@ -127,21 +114,5 @@ export function renderSetup(root: HTMLElement, props: SetupProps): void {
       (root.querySelector("#after") as HTMLInputElement).value,
     );
     props.onStart(p, i, before, after);
-  });
-  root.querySelectorAll(".key-chip").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const sheet = (btn as HTMLElement).dataset.sheet!;
-      const key = (btn as HTMLElement).dataset.key || null;
-      const bound = props.codes.filter((c) => c.key).length;
-      if (
-        key &&
-        !props.codes.find((c) => c.sheetName === sheet)?.key &&
-        bound >= 8
-      ) {
-        alert("Maximum eight codes assigned");
-        return;
-      }
-      props.onAssignKey(sheet, key);
-    });
   });
 }
