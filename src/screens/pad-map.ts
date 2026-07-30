@@ -7,16 +7,21 @@ export function padMapHtml(
   byKey: Map<string, string>,
 ): string {
   const getLabel = (slot: string) => byKey.get(slot);
+  const startBtn = fixedRoleLabel(profile, "toggleArmed");
+  const undoBtn = fixedRoleLabel(profile, "undo");
 
   return `<div class="bind-groups bind-groups--face" data-profile="${profile.id}">
     <div class="bind-group bind-group--pad">
       ${bindPadHtml(profile, getLabel)}
     </div>
-    <p class="bind-fixed mono">
-      <span>${escapeHtml(fixedRoleLabel(profile, "toggleArmed"))} · Start/Stop</span>
-      <span>${escapeHtml(fixedRoleLabel(profile, "undo"))} · Undo</span>
-      <span>Space · General</span>
-      <span>N · No-fit</span>
-    </p>
+    <div class="bind-fixed">
+      <p class="bind-fixed__title">Fixed controls (not for criteria)</p>
+      <ul class="bind-fixed__list">
+        <li><strong>${escapeHtml(startBtn)}</strong> — Start or stop marking on the Mark page</li>
+        <li><strong>${escapeHtml(undoBtn)}</strong> — Undo the last mark</li>
+        <li><strong>Space</strong> — Mark this moment (no criterion)</li>
+        <li><strong>N</strong> — Doesn't fit any criterion</li>
+      </ul>
+    </div>
   </div>`;
 }

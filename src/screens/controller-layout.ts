@@ -1,7 +1,6 @@
 import type { Code } from "../model/types";
 import type { ControllerProfile } from "../input/controller-profiles";
 import { escapeHtml, wireBindTargets } from "./bind-targets";
-import { fixedRoleLabel } from "./face-layout";
 import { padMapHtml } from "./pad-map";
 import { keyMapHtml } from "./key-map";
 
@@ -36,7 +35,7 @@ export function renderControllerLayout(
       <p class="hint">
         ${
           onPad
-            ? `Drag a criterion onto a ${escapeHtml(props.profile.displayName)} face or shoulder button. ${escapeHtml(fixedRoleLabel(props.profile, "toggleArmed"))} starts/stops marking; ${escapeHtml(fixedRoleLabel(props.profile, "undo"))} undoes. Space / N for general and no-fit.`
+            ? `Drag a criterion onto a ${escapeHtml(props.profile.displayName)} face or shoulder button. Fixed controls below are reserved — they are not drop targets.`
             : "No controller needed — drag a criterion onto a key, or pick one from the key's list."
         }
       </p>

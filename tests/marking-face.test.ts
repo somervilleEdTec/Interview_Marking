@@ -88,8 +88,11 @@ describe("padMapHtml face layout", () => {
     expect(html).toContain(">RB<");
     expect(html).toContain("Rapport");
     expect(html).toContain(">B<");
-    expect(html).toContain("Menu · Start/Stop");
-    expect(html).toContain("View · Undo");
+    expect(html).toContain("Fixed controls (not for criteria)");
+    expect(html).toContain("Start or stop marking on the Mark page");
+    expect(html).toContain("Undo the last mark");
+    expect(html).toContain(">Menu</strong>");
+    expect(html).toContain(">View</strong>");
     expect(html).not.toContain("LB + X");
     expect(html).not.toContain("Hold");
     // Left column precedes diamond; right follows (LB/LT then face then RB/RT).

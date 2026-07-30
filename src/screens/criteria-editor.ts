@@ -45,7 +45,17 @@ export function renderCriteriaEditor(
           .map((c, i) => {
             const isEmpty = !c.sheetName;
             const realIndex = isEmpty ? rows.length : i;
-            return `<li class="criteria-row" data-index="${realIndex}" data-sheet="${escapeAttr(c.sheetName)}">
+            const stateClass = isEmpty
+              ? ""
+              : c.key
+                ? " criteria-row--assigned"
+                : " criteria-row--unassigned";
+            const status = isEmpty
+              ? ""
+              : c.key
+                ? `<span class="criteria-status criteria-status--assigned">Assigned · ${escapeHtml(String(c.key))}</span>`
+                : `<span class="criteria-status criteria-status--unassigned">Unassigned</span>`;
+            return `<li class="criteria-row${stateClass}" data-index="${realIndex}" data-sheet="${escapeAttr(c.sheetName)}">
               <span class="criteria-drag" draggable="${isEmpty ? "false" : "true"}" aria-hidden="true">${isEmpty ? "·" : "⋮⋮"}</span>
               <input
                 type="text"
@@ -56,7 +66,7 @@ export function renderCriteriaEditor(
                 placeholder="Type a criterion…"
                 autocomplete="off"
               />
-              <span class="criteria-key mono">${c.key ? `key ${c.key}` : ""}</span>
+              ${status}
               ${
                 isEmpty
                   ? ""
