@@ -52,7 +52,7 @@ describe("markingCodesHtml", () => {
     expect(html).toContain("Theme");
   });
 
-  it("shows bound shoulders without Hold L1", () => {
+  it("flanks face with compact left/right triggers", () => {
     const html = markingCodesHtml({
       codes: [
         { sheetName: "Rapport", parent: null, rowCount: 1, key: "A" },
@@ -62,9 +62,12 @@ describe("markingCodesHtml", () => {
       inputMode: "controller",
       profile: profileById("xbox"),
     });
-    expect(html).toContain("Shoulders");
+    expect(html).toContain("face-mark--pad");
+    expect(html).toContain("shoulder-col--left");
+    expect(html).toContain("shoulder-col--right");
     expect(html).toContain("Depth");
     expect(html).toContain(">LB<");
+    expect(html).toContain(">RB<");
     expect(html).not.toContain("Hold");
   });
 });

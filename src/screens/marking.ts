@@ -3,14 +3,7 @@ import { CODE_SLOTS } from "../model/types";
 import { elapsedSinceStart, formatInterviewTime } from "../model/time";
 import type { ControllerProfile } from "../input/controller-profiles";
 import type { InputMode } from "./controller-layout";
-import {
-  faceButtons,
-  faceDiamondHtml,
-  fixedRoleLabel,
-  shoulderButtons,
-  shoulderRowHtml,
-  slotButtonsToFaceCells,
-} from "./face-layout";
+import { fixedRoleLabel, markPadHtml } from "./face-layout";
 import { escapeHtml } from "./bind-targets";
 
 export interface MarkingProps {
@@ -75,26 +68,15 @@ function controllerTilesHtml(
     byKey.set(c.key, c.sheetName);
   }
   const getLabel = (slot: string) => byKey.get(slot);
-  const opts = {
-    hideUnassigned: true,
+  const pad = markPadHtml(profile, getLabel, {
+    hideUnassignedFace: true,
     counts,
     flashSlot: props.flashSlot,
-  };
-  const face = slotButtonsToFaceCells(faceButtons(profile), getLabel, opts);
-  const shoulders = shoulderRowHtml(
-    shoulderButtons(profile),
-    getLabel,
-    "mark",
-    opts,
-  );
-  const hasFace = Object.keys(face).length > 0;
-  if (!hasFace && !shoulders) {
+  });
+  if (!pad) {
     return `<p class="ink-3">No criteria bound to controller buttons yet.</p>`;
   }
-  return `<div class="face-mark">
-    ${hasFace ? `<div class="face-mark__group"><h3 class="face-mark__head">Face</h3>${faceDiamondHtml(face, "mark")}</div>` : ""}
-    ${shoulders ? `<div class="face-mark__group"><h3 class="face-mark__head">Shoulders</h3>${shoulders}</div>` : ""}
-  </div>`;
+  return pad;
 }
 
 /** Pure HTML for assigned code tiles (keyboard grid or controller face). */
