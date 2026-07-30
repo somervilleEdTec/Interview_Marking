@@ -75,7 +75,9 @@ export function renderSetup(root: HTMLElement, props: SetupProps): void {
         ? "Type up to eight criteria, then drag a filled row onto a home-row key — or pick it from that key's list."
         : props.pads.length
           ? "Type up to eight criteria, then drag a filled row onto a controller button."
-          : "Type up to eight criteria. No controller? Switch the button map to Keyboard to bind home-row keys.",
+          : "Type up to eight criteria. No controller? Use Keyboard to bind home-row keys.",
+    showKeyboardOption: props.inputMode === "controller",
+    onUseKeyboard: () => props.onInputMode("keyboard"),
     onUpsert: props.onUpsertCriterion,
     onRemove: props.onRemoveCriterion,
   });
