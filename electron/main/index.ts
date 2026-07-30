@@ -36,6 +36,7 @@ import { writeNumberedDocx } from "../../src/transcript/docx";
 import { resolveMarkLines, DEFAULT_WINDOW } from "../../src/model/resolve";
 import type { Mark, Session, MarkSlot, Code } from "../../src/model/types";
 import { codeParent } from "../../src/model/hierarchy";
+import { canSendToWindow } from "./safe-send";
 
 let mainWindow: BrowserWindow | null = null;
 let armed = false;
@@ -54,7 +55,8 @@ function userData(): string {
 }
 
 function send(channel: string, payload: unknown): void {
-  mainWindow?.webContents.send(channel, payload);
+  if (!canSendToWindow(mainWindow)) return;
+  mainWindow!.webContents.send(channel, payload);
 }
 
 function slotToCode(slot: MarkSlot): string | null {
@@ -95,7 +97,7 @@ function handleAction(action: MarkAction): void {
 }
 
 function registerShortcuts(): void {
-  unregisterShortcuts();
+  unregisterShortcuts({ notify: false });
   for (const [key, action] of Object.entries(KEYBOARD_MAP)) {
     const accel =
       key === "Space"
@@ -112,10 +114,11 @@ function registerShortcuts(): void {
   send("input:armed", true);
 }
 
-function unregisterShortcuts(): void {
+function unregisterShortcuts(opts: { notify?: boolean } = {}): void {
+  const notify = opts.notify !== false;
   globalShortcut.unregisterAll();
   armed = false;
-  send("input:armed", false);
+  if (notify) send("input:armed", false);
 }
 
 /** Poll renderer-reported gamepad OR keepalive channel — renderer sends button state. */
@@ -163,6 +166,10 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
+
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+  });
 }
 
 app.whenReady().then(() => {
@@ -462,12 +469,12 @@ app.whenReady().then(() => {
   );
 
   app.on("will-quit", () => {
-    unregisterShortcuts();
+    unregisterShortcuts({ notify: false });
     if (gamepadTimer) clearInterval(gamepadTimer);
   });
 });
 
 app.on("window-all-closed", () => {
-  unregisterShortcuts();
+  unregisterShortcuts({ notify: false });
   if (process.platform !== "darwin") app.quit();
 });
