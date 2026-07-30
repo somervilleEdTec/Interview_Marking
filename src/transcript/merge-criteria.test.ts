@@ -13,7 +13,6 @@ function mark(
     slot: "A",
     window: { before: 45, after: 15 },
     dropped: false,
-    note: "",
     ...partial,
   };
 }

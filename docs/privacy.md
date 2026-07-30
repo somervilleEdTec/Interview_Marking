@@ -7,7 +7,7 @@ Interview Marking is a **local-first** desktop app for higher-education intervie
 | Data                            | Where stored                                             | Leaves the device? |
 | ------------------------------- | -------------------------------------------------------- | ------------------ |
 | Participant / interview numbers | Electron `userData` JSON store                           | No                 |
-| Marks, notes, saturation events | Same local store                                         | No                 |
+| Marks, saturation events        | Same local store                                         | No                 |
 | Imported transcripts            | Same local store (active session)                        | No                 |
 | Coding workbook extracts        | User-chosen Excel path (+ `.bak.xlsx` backups beside it) | No                 |
 
@@ -20,7 +20,7 @@ Packaged builds load UI from local files only. Fonts ship with the app (no Googl
 ## Security controls (v2)
 
 - `contextIsolation`, no `nodeIntegration`, sandboxed renderer, navigation/window-open denied
-- HTML escaping for transcript/notes/criteria in the UI
+- HTML escaping for transcript/criteria in the UI
 - Transcript import size limit (40 MB)
 - Append-only Excel write-back with backup before write
 

@@ -57,7 +57,6 @@ describe("resolveMarkLines", () => {
     codeRef: "risk",
     window: { before: 1, after: 1 },
     dropped: false,
-    note: "",
   };
 
   it("uses overlap not containment", () => {

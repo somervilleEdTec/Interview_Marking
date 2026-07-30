@@ -42,7 +42,6 @@ function sampleSession(): Session {
         codeRef: "Theme",
         window: { before: 2, after: 4 },
         dropped: false,
-        note: "",
       },
     ],
     transcript: [{ n: 1, startMs: 0, endMs: 1000, text: "Hi" }],

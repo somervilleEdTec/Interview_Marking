@@ -28,7 +28,7 @@ export function renderReview(root: HTMLElement, props: ReviewProps): void {
       <p class="hint">Shift all marks on the recording/transcript timeline without changing when they were pressed in the interview.</p>
       <ul class="mark-list">
         ${session.marks
-          .map((m, idx) => {
+          .map((m) => {
             const time = formatInterviewTime(
               markAtToMs(m.at, session.startedAt),
             );
@@ -46,9 +46,7 @@ export function renderReview(root: HTMLElement, props: ReviewProps): void {
                     </select>`
                   : ""
               }
-              <input data-note="${escapeHtml(m.id)}" placeholder="Note" value="${escapeHtml(m.note)}" />
               <button type="button" data-drop="${escapeHtml(m.id)}">${m.dropped ? "Restore" : "Drop"}</button>
-              ${idx > 0 ? `<button type="button" data-merge="${escapeHtml(m.id)}">Merge←prev</button>` : ""}
             </li>`;
           })
           .join("")}
@@ -76,26 +74,6 @@ export function renderReview(root: HTMLElement, props: ReviewProps): void {
       const id = (sel as HTMLElement).dataset.assign!;
       const m = session.marks.find((x) => x.id === id);
       if (m) m.codeRef = (sel as HTMLSelectElement).value || null;
-      props.onChange(session);
-    });
-  });
-  root.querySelectorAll("[data-note]").forEach((inp) => {
-    inp.addEventListener("change", () => {
-      const id = (inp as HTMLElement).dataset.note!;
-      const m = session.marks.find((x) => x.id === id);
-      if (m) m.note = (inp as HTMLInputElement).value;
-      props.onChange(session);
-    });
-  });
-  root.querySelectorAll("[data-merge]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const id = (btn as HTMLElement).dataset.merge!;
-      const i = session.marks.findIndex((x) => x.id === id);
-      if (i <= 0) return;
-      const prev = session.marks[i - 1];
-      const cur = session.marks[i];
-      cur.codeRef = prev.codeRef;
-      cur.slot = prev.slot;
       props.onChange(session);
     });
   });

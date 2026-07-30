@@ -111,7 +111,6 @@ function handleAction(action: MarkAction): void {
     codeRef: slotToCode(slot),
     window: { ...DEFAULT_WINDOW },
     dropped: false,
-    note: "",
   };
   const session = appendMark(userData(), activeSessionId, mark);
   send("mark:captured", { mark, session });

@@ -12,7 +12,6 @@ const mark = (at: number, codeRef: string): Mark => ({
   codeRef,
   window: { before: 45, after: 15 },
   dropped: false,
-  note: "",
 });
 
 function session(partial: Partial<Session>): Session {
@@ -82,9 +81,7 @@ World
       ),
     ).toBe(true);
 
-    const speaker = parseSpeakerTurns(
-      "[00:00] I: Hello\n[00:50] P: World",
-    );
+    const speaker = parseSpeakerTurns("[00:00] I: Hello\n[00:50] P: World");
     expect(
       mergeCriteriaByNearestTimestamp(speaker, [mark(50_000, "risk")], 0).some(
         (r) => r.criteria === "risk",

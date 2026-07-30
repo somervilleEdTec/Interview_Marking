@@ -40,7 +40,6 @@ export interface Mark {
   codeRef: string | null;
   window: TimeWindow;
   dropped: boolean;
-  note: string;
   resolved?: ResolvedMark;
 }
 

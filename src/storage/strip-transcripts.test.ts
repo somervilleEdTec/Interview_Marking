@@ -17,7 +17,6 @@ function sampleStore(): AppStore {
         codeRef: "Theme",
         window: { before: 2, after: 4 },
         dropped: false,
-        note: "",
         resolved: { lineStart: 1, lineEnd: 2, text: "secret transcript" },
       },
     ],
