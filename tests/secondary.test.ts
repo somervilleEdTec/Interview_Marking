@@ -12,12 +12,15 @@ describe("exportCodebookCsv", () => {
 });
 
 describe("gamepadAction", () => {
-  it("maps L2 to general and RB to undo", () => {
+  it("maps LT/RT to shoulder slots and Menu to undo", () => {
     const buttons = Array(16).fill(false);
     buttons[6] = true;
-    expect(gamepadAction(buttons, false)).toEqual({ type: "general" });
+    expect(gamepadAction(buttons, false)).toEqual({ type: "code", slot: "K" });
     buttons[6] = false;
-    buttons[5] = true;
+    buttons[7] = true;
+    expect(gamepadAction(buttons, false)).toEqual({ type: "code", slot: ";" });
+    buttons[7] = false;
+    buttons[9] = true;
     expect(gamepadAction(buttons, false)).toEqual({ type: "undo" });
   });
 });

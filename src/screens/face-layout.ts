@@ -26,53 +26,36 @@ export interface FaceCell {
   count?: number;
 }
 
-function primaryFace(profile: ControllerProfile): SlotButton[] {
-  return profile.buttons.filter(
-    (b): b is SlotButton =>
-      b.role.kind === "slot" && b.role.layer === "primary",
+export function faceButtons(profile: ControllerProfile): SlotButton[] {
+  const byZone = new Map(
+    profile.buttons
+      .filter(
+        (b): b is SlotButton =>
+          b.role.kind === "slot" && b.role.group === "face",
+      )
+      .map((b) => [b.zone, b]),
   );
-}
-
-export function facePrimaryButtons(profile: ControllerProfile): SlotButton[] {
-  const byZone = new Map(primaryFace(profile).map((b) => [b.zone, b]));
   return (["face-n", "face-w", "face-e", "face-s"] as const)
     .map((z) => byZone.get(z))
     .filter(Boolean) as SlotButton[];
 }
 
-export function faceSecondaryButtons(profile: ControllerProfile): SlotButton[] {
-  const secs = profile.buttons.filter(
-    (b): b is SlotButton =>
-      b.role.kind === "slot" && b.role.layer === "secondary",
+export function shoulderButtons(profile: ControllerProfile): SlotButton[] {
+  const order = [
+    "shoulder-lb",
+    "shoulder-lt",
+    "shoulder-rb",
+    "shoulder-rt",
+  ] as const;
+  const byZone = new Map(
+    profile.buttons
+      .filter(
+        (b): b is SlotButton =>
+          b.role.kind === "slot" && b.role.group === "shoulder",
+      )
+      .map((b) => [b.zone, b]),
   );
-  const byIndex = new Map(secs.map((b) => [b.index, b]));
-  return facePrimaryButtons(profile)
-    .map((p) => byIndex.get(p.index))
-    .filter(Boolean) as SlotButton[];
-}
-
-export function facePressLabel(
-  profile: ControllerProfile,
-  button: SlotButton,
-): string {
-  if (button.role.layer === "primary") return button.label;
-  const mod =
-    profile.buttons.find((b) => b.role.kind === "modifier")?.label ?? "L1";
-  const face =
-    primaryFace(profile).find((p) => p.index === button.index)?.label ??
-    button.label;
-  return `${mod} + ${face}`;
-}
-
-function dirForSlotButton(
-  profile: ControllerProfile,
-  button: SlotButton,
-): FaceDir | null {
-  if (button.role.layer === "primary") {
-    return FACE_ZONE_TO_DIR[button.zone] ?? null;
-  }
-  const primary = primaryFace(profile).find((p) => p.index === button.index);
-  return primary ? (FACE_ZONE_TO_DIR[primary.zone] ?? null) : null;
+  return order.map((z) => byZone.get(z)).filter(Boolean) as SlotButton[];
 }
 
 function markCellHtml(cell: FaceCell, dir: FaceDir): string {
@@ -118,7 +101,6 @@ export function faceDiamondHtml(
 
 export function slotButtonsToFaceCells(
   buttons: SlotButton[],
-  profile: ControllerProfile,
   getLabel: (slot: string) => string | undefined,
   opts?: {
     hideUnassigned?: boolean;
@@ -128,13 +110,13 @@ export function slotButtonsToFaceCells(
 ): Partial<Record<FaceDir, FaceCell>> {
   const cells: Partial<Record<FaceDir, FaceCell>> = {};
   for (const b of buttons) {
-    const dir = dirForSlotButton(profile, b);
+    const dir = FACE_ZONE_TO_DIR[b.zone];
     if (!dir) continue;
     const label = getLabel(b.role.slot);
     if (opts?.hideUnassigned && !label) continue;
     cells[dir] = {
       slot: b.role.slot,
-      press: facePressLabel(profile, b),
+      press: b.label,
       label: label ?? "",
       count: opts?.counts?.get(b.role.slot) ?? 0,
       flash: opts?.flashSlot === b.role.slot,
@@ -143,9 +125,55 @@ export function slotButtonsToFaceCells(
   return cells;
 }
 
+function shoulderTileHtml(
+  button: SlotButton,
+  label: string | undefined,
+  mode: "mark" | "bind",
+  opts?: { count?: number; flash?: boolean },
+): string {
+  if (mode === "mark") {
+    if (!label) return "";
+    const flash = opts?.flash ? " flash" : "";
+    return `<div class="shoulder-btn${flash}" data-slot="${escapeHtml(button.role.slot)}">
+      <span class="tile-key">${escapeHtml(button.label)}</span>
+      <span class="tile-name">${escapeHtml(label)}</span>
+      <span class="tile-count mono">${opts?.count ?? 0}</span>
+    </div>`;
+  }
+  return `<div class="shoulder-btn shoulder-btn--bind" data-drop="1" data-slot="${escapeHtml(button.role.slot)}">
+    <span class="bind-press mono">${escapeHtml(button.label)}</span>
+    <span class="bind-label ${label ? "" : "is-empty"}">${label ? escapeHtml(label) : "Drop criterion"}</span>
+    ${label ? `<button type="button" class="bind-clear" data-sheet="${escapeHtml(label)}" title="Clear">✕</button>` : ""}
+  </div>`;
+}
+
+export function shoulderRowHtml(
+  buttons: SlotButton[],
+  getLabel: (slot: string) => string | undefined,
+  mode: "mark" | "bind",
+  opts?: {
+    hideUnassigned?: boolean;
+    counts?: Map<string, number>;
+    flashSlot?: string | null;
+  },
+): string {
+  const tiles = buttons
+    .map((b) => {
+      const label = getLabel(b.role.slot);
+      if (opts?.hideUnassigned && !label) return "";
+      return shoulderTileHtml(b, label, mode, {
+        count: opts?.counts?.get(b.role.slot) ?? 0,
+        flash: opts?.flashSlot === b.role.slot,
+      });
+    })
+    .filter(Boolean);
+  if (!tiles.length) return "";
+  return `<div class="shoulder-row">${tiles.join("")}</div>`;
+}
+
 export function fixedRoleLabel(
   profile: ControllerProfile,
-  kind: "undo" | "general" | "nofit" | "modifier",
+  kind: "undo",
 ): string {
   return profile.buttons.find((b) => b.role.kind === kind)?.label ?? kind;
 }

@@ -1,4 +1,4 @@
-/** Analog triggers (L2/R2) must exceed this to count as pressed. */
+/** Analog triggers (L2/R2 / LT/RT) must exceed this to count as pressed. */
 export const TRIGGER_PRESS_THRESHOLD = 0.9;
 
 type FocusLike = {
@@ -39,15 +39,17 @@ export function buttonIsPressed(
   return button.pressed;
 }
 
-/** Build boolean pressed array with obscure L2/R2 threshold. */
+/** Build boolean pressed array; threshold analog triggers (LT/RT). */
 export function readPadButtons(
   buttons: ArrayLike<{ pressed: boolean; value: number }>,
-  triggerIndices: { general: number; nofit: number },
+  analogTriggerIndices: readonly number[] = [6, 7],
 ): boolean[] {
+  const analog = new Set(analogTriggerIndices);
   const out: boolean[] = [];
   for (let i = 0; i < buttons.length; i++) {
-    const analog = i === triggerIndices.general || i === triggerIndices.nofit;
-    out.push(buttonIsPressed(buttons[i], { analogTrigger: analog }));
+    out.push(
+      buttonIsPressed(buttons[i], { analogTrigger: analog.has(i) }),
+    );
   }
   return out;
 }

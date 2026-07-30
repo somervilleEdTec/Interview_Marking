@@ -172,13 +172,12 @@ async function bootstrap(): Promise<void> {
 
     const buttons = readPadButtons(
       pad.buttons,
-      assigned.profile.triggerIndices,
+      assigned.profile.analogTriggerIndices,
     );
-    const l1 = !!pad.buttons[assigned.profile.modifierIndex]?.pressed;
     const changed = buttons.some((b, i) => b && !prev[i]);
     prev = buttons;
     if (changed) {
-      void window.interview.sendGamepad(buttons, l1, assigned.profileId);
+      void window.interview.sendGamepad(buttons, false, assigned.profileId);
     }
   }, 32);
 
@@ -237,23 +236,10 @@ function paint(): void {
   if (state.screen === "setup") {
     renderSetup(el, {
       codes: state.codes,
-      workbookPath: state.workbookPath,
       sheetSuggestions: state.sheetSuggestions,
       pads: state.pads,
       assignedGamepadId: state.assignedGamepadId,
       inputMode: state.inputMode,
-      onPickWorkbook: async () => {
-        const res = await window.interview.pickWorkbook();
-        if (!res) return;
-        if (res.error) {
-          alert(res.error);
-          return;
-        }
-        state.workbookPath = res.path ?? "";
-        state.codes = res.codes ?? [];
-        state.sheetSuggestions = res.workbookSheets ?? state.sheetSuggestions;
-        paint();
-      },
       onAssignKey: async (sheetName, key) => {
         const codes = await window.interview.assignKey(sheetName, key);
         if (codes) state.codes = codes;
@@ -280,16 +266,6 @@ function paint(): void {
         state.inputMode = mode;
         paint();
       },
-      onStart: async (participantNumber, interviewNumber, before, after) => {
-        state.session = await window.interview.startSession({
-          participantNumber,
-          interviewNumber,
-          before,
-          after,
-        });
-        state.armed = true;
-        navigate("marking");
-      },
     });
   } else if (state.screen === "marking") {
     const assigned = resolveAssignedPad(state.pads, state.assignedGamepadId);
@@ -304,7 +280,28 @@ function paint(): void {
       flashSlot: state.flashSlot,
       inputMode: state.inputMode,
       profile,
-      onToggleArm: async () => {
+      onStartSession: async () => {
+        state.session = await window.interview.startSession({
+          participantNumber: "P1",
+          interviewNumber: "I1",
+          before: 45,
+          after: 15,
+        });
+        state.armed = true;
+        paint();
+      },
+      onToggleMarking: async () => {
+        if (!state.session) {
+          state.session = await window.interview.startSession({
+            participantNumber: "P1",
+            interviewNumber: "I1",
+            before: 45,
+            after: 15,
+          });
+          state.armed = true;
+          paint();
+          return;
+        }
         state.armed = await window.interview.setArmed(!state.armed);
         paint();
       },

@@ -139,7 +139,7 @@ textarea:focus {
   box-shadow: var(--ring);
 }
 
-/* Armed / recording status */
+/* Marking / recording status */
 .status {
   display: inline-flex;
   align-items: center;
@@ -572,6 +572,42 @@ h3 {
 }
 .bind-groups--face .face-diamond__pad {
   aspect-ratio: 1;
+}
+.shoulder-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s2);
+  width: 100%;
+  max-width: 28rem;
+}
+.shoulder-btn {
+  display: grid;
+  gap: var(--s1);
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  padding: var(--s3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  min-height: 4.5rem;
+}
+.shoulder-btn--bind {
+  position: relative;
+  cursor: copy;
+}
+.shoulder-btn .tile-key,
+.shoulder-btn .bind-press {
+  font: 600 var(--t-sm) var(--font-mono);
+  color: var(--accent-strong, var(--accent));
+}
+.shoulder-btn .tile-name,
+.shoulder-btn .bind-label {
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.shoulder-btn .bind-label.is-empty {
+  color: var(--ink-3);
 }
 .mark-actions {
   display: flex;

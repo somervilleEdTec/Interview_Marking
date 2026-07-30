@@ -21,10 +21,12 @@ describe("padMapHtml", () => {
     expect(html).not.toContain("data-layer");
   });
 
-  it("labels secondary slots with the modifier plus the face button", () => {
-    expect(html).toContain("LB + X");
+  it("labels shoulder slots as LB/LT/RB/RT", () => {
+    expect(html).toContain(">LB<");
+    expect(html).toContain(">LT<");
     expect(html).toContain("Rapport");
     expect(html).toContain("Probing");
+    expect(html).not.toContain("LB + X");
   });
 });
 

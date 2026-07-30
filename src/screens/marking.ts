@@ -4,10 +4,11 @@ import { elapsedSinceStart, formatInterviewTime } from "../model/time";
 import type { ControllerProfile } from "../input/controller-profiles";
 import type { InputMode } from "./controller-layout";
 import {
+  faceButtons,
   faceDiamondHtml,
-  facePrimaryButtons,
-  faceSecondaryButtons,
   fixedRoleLabel,
+  shoulderButtons,
+  shoulderRowHtml,
   slotButtonsToFaceCells,
 } from "./face-layout";
 import { escapeHtml } from "./bind-targets";
@@ -19,7 +20,8 @@ export interface MarkingProps {
   flashSlot: string | null;
   inputMode: InputMode;
   profile: ControllerProfile | null;
-  onToggleArm: () => void;
+  onToggleMarking: () => void;
+  onStartSession: () => void;
   onEnd: () => void;
 }
 
@@ -78,27 +80,20 @@ function controllerTilesHtml(
     counts,
     flashSlot: props.flashSlot,
   };
-  const primary = slotButtonsToFaceCells(
-    facePrimaryButtons(profile),
-    profile,
+  const face = slotButtonsToFaceCells(faceButtons(profile), getLabel, opts);
+  const shoulders = shoulderRowHtml(
+    shoulderButtons(profile),
     getLabel,
+    "mark",
     opts,
   );
-  const secondary = slotButtonsToFaceCells(
-    faceSecondaryButtons(profile),
-    profile,
-    getLabel,
-    opts,
-  );
-  const hasPrimary = Object.keys(primary).length > 0;
-  const hasSecondary = Object.keys(secondary).length > 0;
-  if (!hasPrimary && !hasSecondary) {
+  const hasFace = Object.keys(face).length > 0;
+  if (!hasFace && !shoulders) {
     return `<p class="ink-3">No criteria bound to controller buttons yet.</p>`;
   }
-  const mod = fixedRoleLabel(profile, "modifier");
   return `<div class="face-mark">
-    ${hasPrimary ? `<div class="face-mark__group"><h3 class="face-mark__head">Press</h3>${faceDiamondHtml(primary, "mark")}</div>` : ""}
-    ${hasSecondary ? `<div class="face-mark__group"><h3 class="face-mark__head">Hold ${escapeHtml(mod)}</h3>${faceDiamondHtml(secondary, "mark")}</div>` : ""}
+    ${hasFace ? `<div class="face-mark__group"><h3 class="face-mark__head">Face</h3>${faceDiamondHtml(face, "mark")}</div>` : ""}
+    ${shoulders ? `<div class="face-mark__group"><h3 class="face-mark__head">Shoulders</h3>${shoulders}</div>` : ""}
   </div>`;
 }
 
@@ -113,21 +108,37 @@ export function markingCodesHtml(
 }
 
 export function renderMarking(root: HTMLElement, props: MarkingProps): void {
+  if (!props.session) {
+    root.className = "stage stage--marking";
+    root.innerHTML = `
+      <section class="mark-main">
+        <h2>Mark</h2>
+        <p class="hint">Start a session to begin marking. Defaults: P1 / I1, window 45/15s.</p>
+        <div class="mark-actions">
+          <button type="button" class="btn btn--primary" id="start-session">Start session</button>
+        </div>
+      </section>
+    `;
+    stopMarkingClock();
+    root.querySelector("#start-session")?.addEventListener("click", () => {
+      props.onStartSession();
+    });
+    return;
+  }
+
   const counts = new Map<string, number>();
-  for (const m of props.session?.marks ?? []) {
+  for (const m of props.session.marks) {
     if (m.dropped) continue;
     counts.set(m.slot, (counts.get(m.slot) ?? 0) + 1);
   }
   const total = [...counts.values()].reduce((a, b) => a + b, 0);
   const onPad = props.inputMode === "controller";
-  const generalKey = onPad
-    ? (props.profile ? fixedRoleLabel(props.profile, "general") : "LT")
-    : "Space";
-  const nofitKey = onPad
-    ? (props.profile ? fixedRoleLabel(props.profile, "nofit") : "RT")
-    : "N";
+  const generalKey = "Space";
+  const nofitKey = "N";
   const undoKey = onPad
-    ? (props.profile ? fixedRoleLabel(props.profile, "undo") : "RB")
+    ? props.profile
+      ? fixedRoleLabel(props.profile, "undo")
+      : "Menu"
     : "Backspace";
 
   const codesHtml = markingCodesHtml(props, counts);
@@ -136,9 +147,9 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
   root.innerHTML = `
     <section class="mark-main">
       <div class="status-row">
-        <span class="status ${props.armed ? "status--live" : ""}">${props.armed ? "Armed" : "Paused"}</span>
-        <span class="mono clock" id="clock">${clockText(props.session?.startedAt)}</span>
-        <span class="meta" id="mark-meta">${escapeHtml(props.session?.participantNumber ?? "—")} · ${escapeHtml(props.session?.interviewNumber ?? "—")} · ${total} marks</span>
+        <span class="status ${props.armed ? "status--live" : ""}">${props.armed ? "Marking" : "Stopped"}</span>
+        <span class="mono clock" id="clock">${clockText(props.session.startedAt)}</span>
+        <span class="meta" id="mark-meta">${escapeHtml(props.session.participantNumber)} · ${escapeHtml(props.session.interviewNumber)} · ${total} marks</span>
       </div>
       ${codesHtml}
       <div class="tiles tiles--wide">
@@ -154,7 +165,7 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
         </div>
       </div>
       <div class="mark-actions">
-        <button type="button" class="btn" id="toggle-arm">${props.armed ? "Disarm" : "Arm"} shortcuts</button>
+        <button type="button" class="btn ${props.armed ? "" : "btn--primary"}" id="toggle-marking">${props.armed ? "Stop" : "Start"}</button>
         <button type="button" class="btn btn--primary" id="end-session">End session → Review</button>
       </div>
       <p class="hint">Interview clock starts at 0:00. ${escapeHtml(undoKey)} undoes last mark. No sound. Keep eyes on the participant.</p>
@@ -168,9 +179,9 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
       clock.textContent = clockText(props.session.startedAt);
     }
   }, 250);
-  root.querySelector("#toggle-arm")?.addEventListener("click", () => {
+  root.querySelector("#toggle-marking")?.addEventListener("click", () => {
     stopMarkingClock();
-    props.onToggleArm();
+    props.onToggleMarking();
   });
   root.querySelector("#end-session")?.addEventListener("click", () => {
     stopMarkingClock();

@@ -36,7 +36,7 @@ export function renderCriteriaEditor(
             : ""
         }
       </div>
-      <p class="hint">${escapeHtml(props.bindHint ?? "Type up to eight criteria, then drag a filled row onto a button or key to bind it.")} Workbook sheets appear as suggestions when a workbook is loaded.</p>
+      <p class="hint">${escapeHtml(props.bindHint ?? "Type up to eight criteria, then drag a filled row onto a button or key to bind it.")}</p>
       <datalist id="sheet-suggestions">
         ${props.sheetSuggestions.map((s) => `<option value="${escapeAttr(s)}"></option>`).join("")}
       </datalist>
