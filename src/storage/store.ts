@@ -96,6 +96,30 @@ export function appendMark(
   return session;
 }
 
+/** Clear marks and transcripts from all sessions; keep codes/bindings/workbook. */
+export function resetMarkingData(userData: string): AppStore {
+  const store = loadStore(userData);
+  if (store.project) {
+    for (const session of store.project.sessions) {
+      session.marks = [];
+      session.transcript = undefined;
+      session.transcriptTurns = undefined;
+      session.recordingOffsetSec = 0;
+      session.armed = false;
+    }
+  }
+  store.saturation = [];
+  saveStore(userData, store);
+  return store;
+}
+
+/** Wipe project, sessions, saturation, and controller assignment. */
+export function fullResetStore(userData: string): AppStore {
+  const store = empty();
+  saveStore(userData, store);
+  return store;
+}
+
 export function exportCodebookCsv(
   codes: { sheetName: string; parent: string | null; rowCount: number }[],
 ): string {

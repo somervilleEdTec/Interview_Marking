@@ -684,6 +684,20 @@ h3 {
   color: var(--ink-2);
   margin: 0;
 }
+.resolve-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s4);
+  margin-bottom: var(--s4);
+}
+.resolve-top .lede {
+  margin-bottom: 0;
+}
+.resolve-reset-row {
+  flex-shrink: 0;
+}
 .preview-sheet {
   margin: var(--s3) 0;
 }

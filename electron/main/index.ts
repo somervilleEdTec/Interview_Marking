@@ -25,6 +25,8 @@ import {
   upsertSession,
   appendMark,
   exportCodebookCsv,
+  resetMarkingData,
+  fullResetStore,
 } from "../../src/storage/store";
 import {
   readCodes,
@@ -196,6 +198,30 @@ app.whenReady().then(() => {
   );
 
   ipcMain.handle("store:load", () => loadStore(userData()));
+
+  ipcMain.handle("store:resetMarking", () => {
+    unregisterShortcuts();
+    armed = false;
+    const store = resetMarkingData(userData());
+    const session =
+      store.project?.sessions.find((s) => s.id === activeSessionId) ??
+      store.project?.sessions.at(-1) ??
+      null;
+    if (session) activeSessionId = session.id;
+    send("input:armed", false);
+    if (session) send("session:updated", session);
+    return { store, session };
+  });
+
+  ipcMain.handle("store:fullReset", () => {
+    unregisterShortcuts();
+    armed = false;
+    activeSessionId = null;
+    codes = [];
+    const store = fullResetStore(userData());
+    send("input:armed", false);
+    return { store };
+  });
 
   ipcMain.handle("controller:getAssigned", () => {
     return loadStore(userData()).assignedGamepadId;

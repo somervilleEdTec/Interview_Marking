@@ -10,13 +10,30 @@ export interface ResolveProps {
   onMergeExport: () => void;
   onOffset: (sec: number) => void;
   onAppend: () => void;
+  onReset: () => void;
+  onFullReset: () => void;
 }
 
 export function renderResolve(root: HTMLElement, props: ResolveProps): void {
   const session = props.session;
   root.className = "stage stage--resolve";
   if (!session) {
-    root.innerHTML = `<section class="panel panel--wide"><p>No session.</p></section>`;
+    root.innerHTML = `
+      <section class="panel panel--wide">
+        <div class="resolve-top">
+          <div>
+            <h1>Transcript &amp; write-back</h1>
+            <p class="lede">No session.</p>
+          </div>
+          <div class="row resolve-reset-row">
+            <button type="button" class="btn" id="reset" disabled>Reset</button>
+            <button type="button" class="btn btn--danger" id="full-reset">Full Reset</button>
+          </div>
+        </div>
+      </section>`;
+    root
+      .querySelector("#full-reset")
+      ?.addEventListener("click", () => props.onFullReset());
     return;
   }
 
@@ -41,8 +58,16 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
 
   root.innerHTML = `
     <section class="panel panel--wide">
-      <h1>Transcript &amp; write-back</h1>
-      <p class="lede">Import SRT, VTT, TXT, DOCX, or PDF. Merge needs a timestamped transcript and coded marks.</p>
+      <div class="resolve-top">
+        <div>
+          <h1>Transcript &amp; write-back</h1>
+          <p class="lede">Import SRT, VTT, TXT, DOCX, or PDF. Merge needs a timestamped transcript and coded marks.</p>
+        </div>
+        <div class="row resolve-reset-row">
+          <button type="button" class="btn" id="reset" title="Clear marks and transcripts">Reset</button>
+          <button type="button" class="btn btn--danger" id="full-reset" title="Clear all settings and data">Full Reset</button>
+        </div>
+      </div>
       <div class="row">
         <button type="button" class="btn btn--primary" id="import">Import transcript</button>
         <button type="button" class="btn" id="docx" ${session.transcript ? "" : "disabled"}>Download numbered .docx</button>
@@ -102,6 +127,12 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
   root
     .querySelector("#append")
     ?.addEventListener("click", () => props.onAppend());
+  root
+    .querySelector("#reset")
+    ?.addEventListener("click", () => props.onReset());
+  root
+    .querySelector("#full-reset")
+    ?.addEventListener("click", () => props.onFullReset());
   root.querySelector("#offset")?.addEventListener("change", (e) => {
     props.onOffset(Number((e.target as HTMLInputElement).value));
   });
