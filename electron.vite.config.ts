@@ -5,6 +5,8 @@ export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
     build: {
+      minify: "esbuild",
+      sourcemap: false,
       rollupOptions: {
         input: {
           index: resolve(__dirname, "electron/main/index.ts"),
@@ -15,6 +17,8 @@ export default defineConfig({
   preload: {
     plugins: [externalizeDepsPlugin()],
     build: {
+      minify: "esbuild",
+      sourcemap: false,
       rollupOptions: {
         input: {
           index: resolve(__dirname, "electron/preload/index.ts"),
@@ -25,6 +29,8 @@ export default defineConfig({
   renderer: {
     root: resolve(__dirname, "src"),
     build: {
+      minify: "esbuild",
+      sourcemap: false,
       rollupOptions: {
         input: {
           index: resolve(__dirname, "src/index.html"),

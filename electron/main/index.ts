@@ -8,7 +8,6 @@ import {
   session,
 } from "electron";
 import { join } from "path";
-import { readFileSync, writeFileSync } from "fs";
 import { randomUUID } from "crypto";
 import {
   KEYBOARD_MAP,
@@ -24,19 +23,16 @@ import {
   saveStore,
   upsertSession,
   appendMark,
-  exportCodebookCsv,
   resetMarkingData,
   fullResetStore,
 } from "../../src/storage/store";
 import {
   readCodes,
-  appendRows,
   isWorkbookLocked,
   assertWritable,
 } from "../../src/excel/workbook";
 import { loadTranscriptFile } from "../../src/transcript/load";
 import { writeNumberedDocx } from "../../src/transcript/docx";
-import { normalizeTranscriptText } from "../../src/transcript/normalize-transcript-text";
 import { mergeCriteriaByNearestTimestamp } from "../../src/transcript/merge-criteria";
 import { turnsForMerge } from "../../src/transcript/turns-for-merge";
 import { writeTaggedExport } from "../../src/excel/tagged-export";
@@ -501,47 +497,6 @@ app.whenReady().then(() => {
     await writeNumberedDocx(session.transcript, res.filePath);
     return { path: res.filePath };
   });
-
-  ipcMain.handle("excel:append", async () => {
-    const store = loadStore(userData());
-    const project = store.project;
-    const session = project?.sessions.find((s) => s.id === activeSessionId);
-    if (!project?.workbookPath || !session)
-      return { error: "Missing project or session" };
-    const rows = session.marks
-      .filter((m) => !m.dropped && m.codeRef && m.resolved)
-      .map((m) => ({
-        sheetName: m.codeRef!,
-        participantNumber: session.participantNumber,
-        interviewNumber: session.interviewNumber,
-        lineRange: `${m.resolved!.lineStart}-${m.resolved!.lineEnd}`,
-        text: normalizeTranscriptText(m.resolved!.text),
-      }));
-    const notes = session.marks.filter(
-      (m) => !m.dropped && (!m.codeRef || m.slot === "nofit"),
-    );
-    try {
-      const backupPath = await appendRows(project.workbookPath, rows);
-      return { backupPath, written: rows.length, notes };
-    } catch (e) {
-      return { error: e instanceof Error ? e.message : String(e) };
-    }
-  });
-
-  ipcMain.handle("codebook:export", async () => {
-    const store = loadStore(userData());
-    if (!store.project) return { error: "No project" };
-    const csv = exportCodebookCsv(store.project.codes);
-    const res = await dialog.showSaveDialog(mainWindow!, {
-      defaultPath: "codebook.csv",
-      filters: [{ name: "CSV", extensions: ["csv"] }],
-    });
-    if (res.canceled || !res.filePath) return null;
-    writeFileSync(res.filePath, csv, "utf8");
-    return { path: res.filePath };
-  });
-
-  ipcMain.handle("saturation:list", () => loadStore(userData()).saturation);
 
   app.on("will-quit", () => {
     unregisterShortcuts({ notify: false });

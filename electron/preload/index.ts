@@ -33,9 +33,6 @@ export interface InterviewAPI {
   importTranscript: () => Promise<unknown>;
   exportDocx: () => Promise<unknown>;
   mergeExport: () => Promise<unknown>;
-  appendExcel: () => Promise<unknown>;
-  exportCodebook: () => Promise<unknown>;
-  saturation: () => Promise<unknown>;
   sendGamepad: (
     buttons: boolean[],
     l1: boolean,
@@ -68,9 +65,6 @@ const api: InterviewAPI = {
   importTranscript: () => ipcRenderer.invoke("transcript:import"),
   exportDocx: () => ipcRenderer.invoke("transcript:exportDocx"),
   mergeExport: () => ipcRenderer.invoke("transcript:mergeExport"),
-  appendExcel: () => ipcRenderer.invoke("excel:append"),
-  exportCodebook: () => ipcRenderer.invoke("codebook:export"),
-  saturation: () => ipcRenderer.invoke("saturation:list"),
   sendGamepad: (buttons, l1, profileId) =>
     ipcRenderer.invoke("gamepad:buttons", buttons, l1, profileId),
   onMark: (cb) => {
