@@ -30,11 +30,11 @@ export function renderSetup(root: HTMLElement, props: SetupProps): void {
   root.className = "stage stage--setup";
   root.innerHTML = `
     <div class="setup-bind-row">
-      <div id="criteria-host"></div>
       <div class="setup-bind-col">
-        <div id="layout-host"></div>
+        <div id="criteria-host"></div>
         ${props.inputMode === "controller" ? '<div id="controller-host"></div>' : ""}
       </div>
+      <div id="layout-host"></div>
     </div>
   `;
 
