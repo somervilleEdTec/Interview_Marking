@@ -50,8 +50,15 @@ export function upsertSession(userData: string, session: Session): AppStore {
     store.project = { workbookPath: "", codes: [], sessions: [session] };
   } else {
     const i = store.project.sessions.findIndex((s) => s.id === session.id);
-    if (i >= 0) store.project.sessions[i] = session;
-    else store.project.sessions.push(session);
+    if (i >= 0) {
+      const prev = store.project.sessions[i];
+      // Keep transcript payload if the renderer omitted it on a partial update
+      store.project.sessions[i] = {
+        ...session,
+        transcript: session.transcript ?? prev.transcript,
+        transcriptTurns: session.transcriptTurns ?? prev.transcriptTurns,
+      };
+    } else store.project.sessions.push(session);
   }
   store.activeSessionId = session.id;
   saveStore(userData, store);
