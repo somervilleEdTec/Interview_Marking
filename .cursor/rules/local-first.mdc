@@ -1,0 +1,9 @@
+---
+description: Local-first workflow — push only on request
+globs: **/*
+alwaysApply: true
+---
+# Local-first / cost
+- Develop assuming the user works in Cursor Desktop locally.
+- Do not git push or create/update PRs unless the user explicitly asks in the current turn.
+- Never introduce getUserMedia, mediaDevices, or getDisplayMedia.
