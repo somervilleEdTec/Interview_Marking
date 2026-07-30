@@ -41,12 +41,15 @@ describe("matchProfile", () => {
 });
 
 describe("gamepadAction profile-aware", () => {
-  it("maps L2 to general and RB/R1 to undo", () => {
+  it("maps shoulders to criteria slots and Menu to undo", () => {
     const buttons = Array(16).fill(false);
-    buttons[6] = true;
-    expect(gamepadAction(buttons, false)).toEqual({ type: "general" });
+    buttons[6] = true; // LT → K
+    expect(gamepadAction(buttons, false)).toEqual({ type: "code", slot: "K" });
     buttons[6] = false;
-    buttons[5] = true;
+    buttons[4] = true; // LB → J
+    expect(gamepadAction(buttons, false)).toEqual({ type: "code", slot: "J" });
+    buttons[4] = false;
+    buttons[9] = true; // Menu / Options → undo
     expect(gamepadAction(buttons, false)).toEqual({ type: "undo" });
   });
 
@@ -65,27 +68,37 @@ describe("gamepadAction profile-aware", () => {
     });
   });
 
-  it("maps face + L1 to secondary slots", () => {
+  it("maps LB/LT/RB/RT as direct slots (no L1 hold)", () => {
     const buttons = Array(16).fill(false);
-    buttons[2] = true;
-    expect(gamepadAction(buttons, true, profileById("xbox"))).toEqual({
+    buttons[4] = true;
+    expect(gamepadAction(buttons, false, profileById("xbox"))).toEqual({
       type: "code",
       slot: "J",
     });
-    buttons[2] = false;
-    buttons[1] = true;
-    expect(gamepadAction(buttons, true, profileById("xbox"))).toEqual({
+    buttons[4] = false;
+    buttons[7] = true;
+    expect(gamepadAction(buttons, false, profileById("xbox"))).toEqual({
       type: "code",
       slot: ";",
     });
+    // Holding a face button alone still maps face, not secondary combo
+    buttons[7] = false;
+    buttons[2] = true;
+    expect(gamepadAction(buttons, true, profileById("xbox"))).toEqual({
+      type: "code",
+      slot: "A",
+    });
   });
 
-  it("uses Xbox face labels X/Y/A/B not RB on east", () => {
+  it("uses Xbox face labels X/Y/A/B; undo on Menu", () => {
     const xbox = profileById("xbox");
     const east = xbox.buttons.find((b) => b.zone === "face-e");
     expect(east?.label).toBe("B");
     expect(east?.index).toBe(1);
-    expect(xbox.buttons.find((b) => b.role.kind === "undo")?.index).toBe(5);
+    expect(xbox.buttons.find((b) => b.role.kind === "undo")?.index).toBe(9);
+    expect(xbox.buttons.find((b) => b.zone === "shoulder-lb")?.label).toBe(
+      "LB",
+    );
   });
 
   it("uses DualSense Square/Triangle/Cross/Circle", () => {
@@ -137,7 +150,7 @@ describe("gamepad-gate", () => {
     buttons[2] = { pressed: true, value: 1 };
     buttons[6] = { pressed: true, value: 0.5 };
     buttons[7] = { pressed: true, value: 0.95 };
-    const out = readPadButtons(buttons, { general: 6, nofit: 7 });
+    const out = readPadButtons(buttons, [6, 7]);
     expect(out[2]).toBe(true);
     expect(out[6]).toBe(false);
     expect(out[7]).toBe(true);

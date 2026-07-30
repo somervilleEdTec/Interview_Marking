@@ -51,19 +51,41 @@ describe("markingCodesHtml", () => {
     expect(html).toContain("Cross");
     expect(html).toContain("Theme");
   });
+
+  it("flanks face with compact left/right triggers", () => {
+    const html = markingCodesHtml({
+      codes: [
+        { sheetName: "Rapport", parent: null, rowCount: 1, key: "A" },
+        { sheetName: "Depth", parent: null, rowCount: 1, key: "J" },
+      ],
+      flashSlot: null,
+      inputMode: "controller",
+      profile: profileById("xbox"),
+    });
+    expect(html).toContain("face-mark--pad");
+    expect(html).toContain("shoulder-col--left");
+    expect(html).toContain("shoulder-col--right");
+    expect(html).toContain("Depth");
+    expect(html).toContain(">LB<");
+    expect(html).toContain(">RB<");
+    expect(html).not.toContain("Hold");
+  });
 });
 
 describe("padMapHtml face layout", () => {
-  it("renders diamond bind targets for all face slots", () => {
+  it("renders diamond + shoulder bind targets", () => {
     const byKey = new Map([
       ["A", "Rapport"],
       ["J", "Probing"],
     ]);
     const html = padMapHtml(profileById("xbox"), byKey);
     expect(html).toContain("face-diamond");
-    expect(html).toContain("LB + X");
+    expect(html).toContain("shoulder-row");
+    expect(html).toContain(">LB<");
     expect(html).toContain("Rapport");
     expect(html).toContain(">B<");
-    expect(html).toContain("RB · Undo");
+    expect(html).toContain("Menu · Undo");
+    expect(html).not.toContain("LB + X");
+    expect(html).not.toContain("Hold");
   });
 });

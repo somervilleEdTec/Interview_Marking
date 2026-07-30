@@ -35,7 +35,7 @@ export function renderControllerLayout(
       <p class="hint">
         ${
           onPad
-            ? `Drag a criterion onto a ${escapeHtml(props.profile.displayName)} button. Undo / General / No-fit are fixed.`
+            ? `Drag a criterion onto a ${escapeHtml(props.profile.displayName)} face or shoulder button. Options/Menu undoes; Space / N for general and no-fit.`
             : "No controller needed — drag a criterion onto a key, or pick one from the key's list."
         }
       </p>

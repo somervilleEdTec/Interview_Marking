@@ -1,5 +1,6 @@
 import { readFileSync, statSync } from "fs";
 import type { TranscriptLine, TranscriptTurn } from "../model/types";
+import { normalizeTranscriptText } from "./normalize-transcript-text";
 import { parseTranscriptTurns } from "./parse";
 import { parseDocxBuffer } from "./parse-docx";
 import { parsePdfBuffer } from "./parse-pdf";
@@ -33,5 +34,10 @@ export async function loadTranscriptFile(
     const content = readFileSync(filePath, "utf8");
     turns = parseTranscriptTurns(filePath, content);
   }
+  turns = turns.map((t) => ({
+    ...t,
+    text: normalizeTranscriptText(t.text),
+    speaker: t.speaker ? normalizeTranscriptText(t.speaker) : t.speaker,
+  }));
   return { turns, lines: turnsToLines(turns) };
 }

@@ -1,8 +1,9 @@
 import type { MarkSlot } from "../model/types";
 import {
-  PRIMARY_SLOT_INDICES,
-  PRIMARY_SLOTS,
-  SECONDARY_SLOTS,
+  FACE_SLOT_INDICES,
+  FACE_SLOTS,
+  SHOULDER_SLOT_INDICES,
+  SHOULDER_SLOTS,
   type ControllerProfile,
 } from "./controller-profiles";
 
@@ -29,26 +30,27 @@ export const KEYBOARD_MAP: Record<string, MarkAction> = {
 
 /**
  * Map gamepad button edges → mark action.
- * Uses DualSense/standard indices by default; pass a profile for explicit roles.
+ * Face + LB/LT/RB/RT are direct slot presses (no hold combinations).
  */
 export function gamepadAction(
   buttons: readonly boolean[],
-  l1Held: boolean,
+  _l1Held: boolean,
   profile?: ControllerProfile,
 ): MarkAction | null {
   const undoIdx =
-    profile?.buttons.find((b) => b.role.kind === "undo")?.index ?? 5;
-  const generalIdx = profile?.triggerIndices.general ?? 6;
-  const nofitIdx = profile?.triggerIndices.nofit ?? 7;
+    profile?.buttons.find((b) => b.role.kind === "undo")?.index ?? 9;
 
   if (buttons[undoIdx]) return { type: "undo" };
-  if (buttons[generalIdx]) return { type: "general" };
-  if (buttons[nofitIdx]) return { type: "nofit" };
 
-  const activeSlots = l1Held ? SECONDARY_SLOTS : PRIMARY_SLOTS;
-  const pressed = PRIMARY_SLOT_INDICES.map((i) => buttons[i]);
-  for (let i = 0; i < 4; i++) {
-    if (pressed[i]) return { type: "code", slot: activeSlots[i] };
+  for (let i = 0; i < FACE_SLOT_INDICES.length; i++) {
+    if (buttons[FACE_SLOT_INDICES[i]]) {
+      return { type: "code", slot: FACE_SLOTS[i] };
+    }
+  }
+  for (let i = 0; i < SHOULDER_SLOT_INDICES.length; i++) {
+    if (buttons[SHOULDER_SLOT_INDICES[i]]) {
+      return { type: "code", slot: SHOULDER_SLOTS[i] };
+    }
   }
   return null;
 }

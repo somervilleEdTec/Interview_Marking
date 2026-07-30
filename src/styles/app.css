@@ -139,7 +139,7 @@ textarea:focus {
   box-shadow: var(--ring);
 }
 
-/* Armed / recording status */
+/* Marking / recording status */
 .status {
   display: inline-flex;
   align-items: center;
@@ -475,6 +475,28 @@ h3 {
   gap: var(--s5);
   justify-items: center;
 }
+.face-mark--pad {
+  grid-template-columns: auto minmax(0, 18rem) auto;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  max-width: 36rem;
+  margin-inline: auto;
+}
+@media (max-width: 640px) {
+  .face-mark--pad {
+    grid-template-columns: 1fr;
+    max-width: 18rem;
+  }
+  .face-mark--pad .shoulder-col {
+    grid-auto-flow: column;
+    justify-content: center;
+  }
+}
+.face-mark__center {
+  width: 100%;
+  min-width: 0;
+}
 .face-mark__group {
   display: grid;
   gap: var(--s3);
@@ -492,6 +514,9 @@ h3 {
 .face-diamond {
   width: 100%;
   max-width: 22rem;
+}
+.face-mark--pad .face-diamond {
+  max-width: none;
 }
 .face-diamond__pad {
   display: grid;
@@ -572,6 +597,78 @@ h3 {
 }
 .bind-groups--face .face-diamond__pad {
   aspect-ratio: 1;
+}
+.shoulder-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s2);
+  width: 100%;
+  max-width: 28rem;
+}
+.shoulder-col {
+  display: grid;
+  gap: var(--s2);
+  align-content: center;
+  justify-items: center;
+}
+.shoulder-btn {
+  display: grid;
+  gap: var(--s1);
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  padding: var(--s3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  min-height: 4.5rem;
+}
+/* Mark pad: compact circular triggers flanking the face */
+.face-mark--pad .shoulder-btn {
+  width: clamp(3.25rem, 9vw, 4.5rem);
+  min-height: 0;
+  padding: var(--s2);
+  border-radius: 50%;
+  aspect-ratio: 1;
+  gap: 2px;
+}
+.face-mark--pad .shoulder-btn .tile-key {
+  font-size: clamp(0.7rem, 1.8vw, 0.95rem);
+  line-height: 1.1;
+}
+.face-mark--pad .shoulder-btn .tile-name {
+  font-size: 0.65rem;
+  line-height: 1.15;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.face-mark--pad .shoulder-btn .tile-count {
+  font-size: 0.65rem;
+}
+.shoulder-btn--empty {
+  opacity: 0.35;
+  pointer-events: none;
+}
+.shoulder-btn--bind {
+  position: relative;
+  cursor: copy;
+}
+.shoulder-btn .tile-key,
+.shoulder-btn .bind-press {
+  font: 600 var(--t-sm) var(--font-mono);
+  color: var(--accent-strong, var(--accent));
+}
+.shoulder-btn .tile-name,
+.shoulder-btn .bind-label {
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.shoulder-btn .bind-label.is-empty {
+  color: var(--ink-3);
 }
 .mark-actions {
   display: flex;

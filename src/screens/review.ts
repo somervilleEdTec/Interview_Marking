@@ -23,7 +23,7 @@ export function renderReview(root: HTMLElement, props: ReviewProps): void {
       <h1>Review</h1>
       <p class="lede">This session: <strong>${kept}</strong> marks · running average: <strong>${props.averageMarks.toFixed(1)}</strong>. Times are minutes:seconds from interview start (0:00).</p>
       <label class="field">Alignment offset (seconds)
-        <input id="offset" type="number" step="0.1" value="${session.recordingOffsetSec}" />
+        <input id="offset" type="number" step="1" value="${Math.round(session.recordingOffsetSec)}" />
       </label>
       <p class="hint">Shift all marks on the recording/transcript timeline without changing when they were pressed in the interview.</p>
       <ul class="mark-list">
@@ -58,7 +58,9 @@ export function renderReview(root: HTMLElement, props: ReviewProps): void {
   `;
 
   root.querySelector("#offset")?.addEventListener("change", (e) => {
-    session.recordingOffsetSec = Number((e.target as HTMLInputElement).value);
+    session.recordingOffsetSec = Math.round(
+      Number((e.target as HTMLInputElement).value),
+    );
     props.onChange(session);
   });
   root.querySelectorAll("[data-drop]").forEach((btn) => {

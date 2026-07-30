@@ -9,7 +9,6 @@ export interface ResolveProps {
   onExportDocx: () => void;
   onMergeExport: () => void;
   onOffset: (sec: number) => void;
-  onWindow: (markId: string, before: number, after: number) => void;
   onAppend: () => void;
 }
 
@@ -66,10 +65,6 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
                 <span class="mono">${r ? `L${r.lineStart}–${r.lineEnd}` : "unresolved"}</span>
               </div>
               <p class="extract">${escapeHtml(r?.text ?? "")}</p>
-              <div class="row">
-                <label>before <input data-win-before="${escapeHtml(m.id)}" type="number" value="${m.window.before}" /></label>
-                <label>after <input data-win-after="${escapeHtml(m.id)}" type="number" value="${m.window.after}" /></label>
-              </div>
             </li>`;
           })
           .join("")}
@@ -109,25 +104,5 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
     ?.addEventListener("click", () => props.onAppend());
   root.querySelector("#offset")?.addEventListener("change", (e) => {
     props.onOffset(Number((e.target as HTMLInputElement).value));
-  });
-  root.querySelectorAll("[data-win-before]").forEach((inp) => {
-    inp.addEventListener("change", () => {
-      const id = (inp as HTMLElement).dataset.winBefore!;
-      const before = Number((inp as HTMLInputElement).value);
-      const afterEl = root.querySelector(
-        `[data-win-after="${id}"]`,
-      ) as HTMLInputElement;
-      props.onWindow(id, before, Number(afterEl.value));
-    });
-  });
-  root.querySelectorAll("[data-win-after]").forEach((inp) => {
-    inp.addEventListener("change", () => {
-      const id = (inp as HTMLElement).dataset.winAfter!;
-      const after = Number((inp as HTMLInputElement).value);
-      const beforeEl = root.querySelector(
-        `[data-win-before="${id}"]`,
-      ) as HTMLInputElement;
-      props.onWindow(id, Number(beforeEl.value), after);
-    });
   });
 }

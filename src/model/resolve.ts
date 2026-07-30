@@ -1,5 +1,6 @@
 import type { Mark, Session, TimeWindow, TranscriptLine } from "./types";
 import { markAtToMs } from "./time";
+import { normalizeTranscriptText } from "../transcript/normalize-transcript-text";
 
 /** Mark interview time → recording timeline ms (plus manual alignment offset). */
 export function markToRecordingMs(
@@ -24,7 +25,7 @@ export function resolveMarkLines(
   return {
     lineStart: lines[0].n,
     lineEnd: lines[lines.length - 1].n,
-    text: lines.map((l) => l.text).join(" "),
+    text: normalizeTranscriptText(lines.map((l) => l.text).join(" ")),
   };
 }
 

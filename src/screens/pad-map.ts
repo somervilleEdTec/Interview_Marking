@@ -1,51 +1,35 @@
-import type {
-  ButtonRole,
-  ControllerProfile,
-  LayoutButton,
-} from "../input/controller-profiles";
+import type { ControllerProfile } from "../input/controller-profiles";
 import { escapeHtml } from "./bind-targets";
 import {
+  faceButtons,
   faceDiamondHtml,
-  facePrimaryButtons,
-  faceSecondaryButtons,
   fixedRoleLabel,
+  shoulderButtons,
+  shoulderRowHtml,
   slotButtonsToFaceCells,
 } from "./face-layout";
-
-type SlotButton = LayoutButton & {
-  role: Extract<ButtonRole, { kind: "slot" }>;
-};
 
 export function padMapHtml(
   profile: ControllerProfile,
   byKey: Map<string, string>,
 ): string {
   const getLabel = (slot: string) => byKey.get(slot);
-  const primary = slotButtonsToFaceCells(
-    facePrimaryButtons(profile) as SlotButton[],
-    profile,
-    getLabel,
-  );
-  const secondary = slotButtonsToFaceCells(
-    faceSecondaryButtons(profile) as SlotButton[],
-    profile,
-    getLabel,
-  );
-  const mod = fixedRoleLabel(profile, "modifier");
+  const face = slotButtonsToFaceCells(faceButtons(profile), getLabel);
+  const shoulders = shoulderRowHtml(shoulderButtons(profile), getLabel, "bind");
 
   return `<div class="bind-groups bind-groups--face" data-profile="${profile.id}">
     <div class="bind-group">
-      <h3 class="bind-group-head">Press</h3>
-      ${faceDiamondHtml(primary, "bind")}
+      <h3 class="bind-group-head">Face</h3>
+      ${faceDiamondHtml(face, "bind")}
     </div>
     <div class="bind-group">
-      <h3 class="bind-group-head">Hold ${escapeHtml(mod)}</h3>
-      ${faceDiamondHtml(secondary, "bind")}
+      <h3 class="bind-group-head">Shoulders</h3>
+      ${shoulders}
     </div>
     <p class="bind-fixed mono">
       <span>${escapeHtml(fixedRoleLabel(profile, "undo"))} · Undo</span>
-      <span>${escapeHtml(fixedRoleLabel(profile, "general"))} · General</span>
-      <span>${escapeHtml(fixedRoleLabel(profile, "nofit"))} · No-fit</span>
+      <span>Space · General</span>
+      <span>N · No-fit</span>
     </p>
   </div>`;
 }
