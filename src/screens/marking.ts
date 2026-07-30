@@ -139,9 +139,9 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
       ${codesHtml}
       <div class="mark-actions">
         <button type="button" class="btn ${props.armed ? "" : "btn--primary"}" id="toggle-marking">${props.armed ? "Stop" : "Start"}</button>
-        <button type="button" class="btn btn--primary" id="end-session">End session → Review</button>
+        <button type="button" class="btn btn--primary" id="end-session">End session</button>
       </div>
-      <p class="hint">Interview clock starts at 0:00; Stop freezes it.${startKey ? ` ${escapeHtml(startKey)} starts/stops marking.` : ""} ${escapeHtml(undoKey)} undoes last mark. No sound. Keep eyes on the participant.</p>
+      <p class="hint mark-hint">${startKey ? `${escapeHtml(startKey)} · Start/Stop. ` : ""}${escapeHtml(undoKey)} · Undo</p>
     </section>
   `;
 

@@ -6,6 +6,8 @@ import {
   dialog,
   shell,
   session,
+  screen,
+  type Rectangle,
 } from "electron";
 import { join } from "path";
 import { randomUUID } from "crypto";
@@ -54,6 +56,9 @@ let codes: Code[] = [];
 let gamepadTimer: NodeJS.Timeout | null = null;
 let lastPadSignature = "";
 let lastProfileId: string | null = null;
+/** Bounds before Mark overlay mode (restored when leaving Mark). */
+let preOverlayBounds: Rectangle | null = null;
+let markOverlayOn = false;
 
 function codeParentSafe(sheetName: string): string | null {
   return codeParent(sheetName);
@@ -255,7 +260,39 @@ function createWindow(): void {
 
   mainWindow.on("closed", () => {
     mainWindow = null;
+    preOverlayBounds = null;
+    markOverlayOn = false;
   });
+}
+
+function setMarkOverlay(on: boolean): boolean {
+  if (!mainWindow || mainWindow.isDestroyed()) return false;
+  if (on === markOverlayOn) return on;
+
+  if (on) {
+    if (!preOverlayBounds) preOverlayBounds = mainWindow.getBounds();
+    markOverlayOn = true;
+    mainWindow.setAlwaysOnTop(true, "floating");
+    mainWindow.setMinimumSize(360, 400);
+    const w = 400;
+    const h = 520;
+    mainWindow.setSize(w, h, true);
+    const display = screen.getDisplayMatching(mainWindow.getBounds());
+    const wa = display.workArea;
+    mainWindow.setPosition(
+      Math.max(wa.x, wa.x + wa.width - w - 16),
+      Math.max(wa.y, wa.y + 24),
+    );
+  } else {
+    markOverlayOn = false;
+    mainWindow.setAlwaysOnTop(false);
+    mainWindow.setMinimumSize(960, 640);
+    if (preOverlayBounds) {
+      mainWindow.setBounds(preOverlayBounds);
+      preOverlayBounds = null;
+    }
+  }
+  return on;
 }
 
 app.whenReady().then(() => {
@@ -483,6 +520,11 @@ app.whenReady().then(() => {
     if (on && armed) bindKeyboardShortcuts();
     return on;
   });
+
+  /** Compact always-on-top Mark window for overlaying on Zoom. */
+  ipcMain.handle("window:setMarkOverlay", (_e, on: boolean) =>
+    setMarkOverlay(on),
+  );
 
   ipcMain.handle("session:get", (_e, id?: string) => {
     const store = loadStore(userData());

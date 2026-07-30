@@ -29,6 +29,7 @@ export interface InterviewAPI {
   }) => Promise<Session>;
   setArmed: (on: boolean) => Promise<boolean>;
   setShortcutsActive: (on: boolean) => Promise<boolean>;
+  setMarkOverlay: (on: boolean) => Promise<boolean>;
   getSession: (id?: string) => Promise<Session | null>;
   updateSession: (session: Session) => Promise<Session>;
   importTranscript: () => Promise<unknown>;
@@ -62,6 +63,7 @@ const api: InterviewAPI = {
   startSession: (payload) => ipcRenderer.invoke("session:start", payload),
   setArmed: (on) => ipcRenderer.invoke("session:arm", on),
   setShortcutsActive: (on) => ipcRenderer.invoke("shortcuts:setActive", on),
+  setMarkOverlay: (on) => ipcRenderer.invoke("window:setMarkOverlay", on),
   getSession: (id) => ipcRenderer.invoke("session:get", id),
   updateSession: (session) => ipcRenderer.invoke("session:update", session),
   importTranscript: () => ipcRenderer.invoke("transcript:import"),

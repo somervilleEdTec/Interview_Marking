@@ -689,6 +689,139 @@ h3 {
   display: flex;
   gap: var(--s3);
 }
+
+/* Compact Mark overlay — sit atop Zoom while keeping commands + Stop/End visible */
+body.is-mark-overlay {
+  background: rgb(15 20 25 / 0.94);
+}
+body.is-mark-overlay .shell {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+body.is-mark-overlay .topbar {
+  padding: 4px 8px;
+  gap: var(--s2);
+}
+body.is-mark-overlay .topbar .eyebrow {
+  display: none;
+}
+body.is-mark-overlay .nav button {
+  padding: 4px 6px;
+  font-size: var(--t-xs);
+}
+body.is-mark-overlay .pad-status {
+  max-width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.is-mark-overlay .ribbon {
+  min-height: 28px;
+  padding: 4px 8px;
+  gap: var(--s1);
+}
+body.is-mark-overlay .ribbon .tick {
+  width: 8px;
+  height: 16px;
+}
+body.is-mark-overlay .stage--marking {
+  gap: var(--s2);
+  padding: 6px 8px 8px;
+  overflow: hidden;
+}
+body.is-mark-overlay .mark-main {
+  gap: var(--s2);
+  height: 100%;
+  align-content: start;
+}
+body.is-mark-overlay .status-row {
+  gap: var(--s2);
+}
+body.is-mark-overlay .clock {
+  font-size: 1.75rem;
+}
+body.is-mark-overlay .status,
+body.is-mark-overlay .meta {
+  font-size: 0.65rem;
+}
+body.is-mark-overlay .tiles {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s1);
+}
+body.is-mark-overlay .tile {
+  min-height: 0;
+  padding: 6px;
+  gap: 2px;
+  border-radius: var(--r-sm);
+}
+body.is-mark-overlay .tile-key {
+  font-size: 1.15rem;
+}
+body.is-mark-overlay .tile-name {
+  font-size: 0.65rem;
+  line-height: 1.15;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+body.is-mark-overlay .tile-count {
+  font-size: 0.65rem;
+}
+body.is-mark-overlay .face-mark--pad {
+  max-width: 100%;
+  gap: var(--s1);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+body.is-mark-overlay .face-mark--pad .face-diamond__pad {
+  gap: 4px;
+}
+body.is-mark-overlay .face-btn {
+  padding: 4px;
+  gap: 1px;
+}
+body.is-mark-overlay .face-btn .tile-key {
+  font-size: 0.85rem;
+}
+body.is-mark-overlay .face-btn .tile-name {
+  font-size: 0.58rem;
+  line-height: 1.1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+body.is-mark-overlay .face-btn .tile-count {
+  font-size: 0.58rem;
+}
+body.is-mark-overlay .face-mark--pad .shoulder-btn {
+  width: 2.6rem;
+  padding: 3px;
+  gap: 1px;
+}
+body.is-mark-overlay .face-mark--pad .shoulder-btn .tile-key {
+  font-size: 0.65rem;
+}
+body.is-mark-overlay .face-mark--pad .shoulder-btn .tile-name {
+  font-size: 0.55rem;
+  -webkit-line-clamp: 2;
+}
+body.is-mark-overlay .face-mark--pad .shoulder-btn .tile-count {
+  font-size: 0.55rem;
+}
+body.is-mark-overlay .mark-actions {
+  gap: var(--s2);
+}
+body.is-mark-overlay .mark-actions .btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: var(--t-sm);
+}
+body.is-mark-overlay .mark-hint {
+  margin: 0;
+  font-size: 0.65rem;
+  line-height: 1.25;
+}
+
 .chip {
   font: 600 var(--t-xs) var(--font-mono);
   padding: 2px 8px;

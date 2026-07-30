@@ -225,6 +225,12 @@ function navigate(screen: Screen): void {
   paint();
 }
 
+function syncMarkOverlay(): void {
+  const on = state.screen === "marking" && !!state.session;
+  document.body.classList.toggle("is-mark-overlay", on);
+  void window.interview.setMarkOverlay(on);
+}
+
 function paintRibbon(): void {
   ribbon().innerHTML = state.ticks
     .map(
@@ -444,6 +450,7 @@ function paint(): void {
   paintRibbon();
 
   document.body.classList.toggle("is-armed", state.armed);
+  syncMarkOverlay();
 }
 
 void bootstrap();
