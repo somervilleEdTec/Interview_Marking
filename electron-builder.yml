@@ -17,4 +17,5 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: Interview Marking
+  include: build/installer.nsh
 publish: null
