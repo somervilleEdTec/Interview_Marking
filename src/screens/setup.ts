@@ -43,7 +43,7 @@ export function renderSetup(root: HTMLElement, props: SetupProps): void {
   root.innerHTML = `
     <section class="panel panel--wide">
       <h1>Setup</h1>
-      <p class="lede">Open your coding workbook, type criteria, assign them to controller buttons (or home-row keys), then start with the Zoom recording.</p>
+      <p class="lede">Open your interview workbook, type criteria, assign them to controller buttons (or home-row keys), then start with the Zoom recording.</p>
       <div class="row">
         <button type="button" class="btn btn--primary" id="pick-wb">Choose workbook</button>
         <span class="mono path">${props.workbookPath || "No workbook selected"}</span>
@@ -62,7 +62,7 @@ export function renderSetup(root: HTMLElement, props: SetupProps): void {
     <div id="controller-host"></div>
     <div id="layout-host"></div>
     <section class="panel">
-      <h2>Keyboard mirror</h2>
+      <h2>Criteria</h2>
       <p class="hint">Same bindings as the controller map. Click a key to bind the criterion named in the row.</p>
       <ul class="code-list">
         ${
