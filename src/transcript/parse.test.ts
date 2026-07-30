@@ -29,10 +29,13 @@ Second line
     expect(lines[0].text).toBe("First line");
   });
 
-  it("parses fixture", () => {
-    const lines = parseSrt(readFileSync(join(fixtures, "sample.srt"), "utf8"));
-    expect(lines).toHaveLength(3);
-    expect(lines[1].text).toContain("fine");
+  it("strips italic tags from SRT cues", () => {
+    const srt = `1
+00:00:01,000 --> 00:00:02,000
+<i>Hello</i> ﬁeld
+
+`;
+    expect(parseSrt(srt)[0].text).toBe("Hello field");
   });
 });
 

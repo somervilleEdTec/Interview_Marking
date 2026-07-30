@@ -1,4 +1,5 @@
 import type { TranscriptLine, TranscriptTurn } from "../model/types";
+import { normalizeTranscriptText } from "./normalize-transcript-text";
 import { linesToTurns, turnsToLines } from "./turns";
 
 function parseTimestamp(ts: string): number {
@@ -36,7 +37,7 @@ export function parseSrt(content: string): TranscriptLine[] {
       n: n++,
       startMs: parseTimestamp(start),
       endMs: parseTimestamp(end),
-      text: textRows.join(" ").trim(),
+      text: normalizeTranscriptText(textRows.join(" ").trim()),
     });
   }
   return lines;
@@ -58,7 +59,7 @@ export function parseProseTxt(content: string): TranscriptTurn[] {
       startMs: null,
       endMs: null,
       speaker: null,
-      text,
+      text: normalizeTranscriptText(text),
     }));
 }
 
@@ -99,11 +100,12 @@ export function parseSpeakerTurns(content: string): TranscriptTurn[] {
         startMs: parseTimestamp(m[1]),
         endMs: null,
         speaker: m[2],
-        text: m[3].trim(),
+        text: normalizeTranscriptText(m[3].trim()),
       });
     } else if (turns.length) {
-      turns[turns.length - 1].text =
-        `${turns[turns.length - 1].text} ${line}`.trim();
+      turns[turns.length - 1].text = normalizeTranscriptText(
+        `${turns[turns.length - 1].text} ${line}`.trim(),
+      );
     }
   }
   return turns;
@@ -124,11 +126,12 @@ export function parseNumberedSegments(content: string): TranscriptTurn[] {
         startMs: parseTimestamp(m[2]),
         endMs: null,
         speaker: null,
-        text: (m[3] ?? "").trim(),
+        text: normalizeTranscriptText((m[3] ?? "").trim()),
       });
     } else if (turns.length && !/^\d+$/.test(line)) {
-      turns[turns.length - 1].text =
-        `${turns[turns.length - 1].text} ${line}`.trim();
+      turns[turns.length - 1].text = normalizeTranscriptText(
+        `${turns[turns.length - 1].text} ${line}`.trim(),
+      );
     }
   }
   return turns;

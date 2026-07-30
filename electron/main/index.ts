@@ -34,6 +34,7 @@ import {
 } from "../../src/excel/workbook";
 import { loadTranscriptFile } from "../../src/transcript/load";
 import { writeNumberedDocx } from "../../src/transcript/docx";
+import { normalizeTranscriptText } from "../../src/transcript/normalize-transcript-text";
 import { mergeCriteriaByNearestTimestamp } from "../../src/transcript/merge-criteria";
 import { turnsForMerge } from "../../src/transcript/turns-for-merge";
 import { writeTaggedExport } from "../../src/excel/tagged-export";
@@ -487,8 +488,8 @@ app.whenReady().then(() => {
         sheetName: m.codeRef!,
         participantNumber: session.participantNumber,
         interviewNumber: session.interviewNumber,
-        lineRange: `${m.resolved!.lineStart}–${m.resolved!.lineEnd}`,
-        text: m.resolved!.text,
+        lineRange: `${m.resolved!.lineStart}-${m.resolved!.lineEnd}`,
+        text: normalizeTranscriptText(m.resolved!.text),
       }));
     const notes = session.marks.filter(
       (m) => !m.dropped && (!m.codeRef || m.slot === "nofit"),
