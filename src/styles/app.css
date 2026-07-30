@@ -42,7 +42,6 @@ body {
 .ribbon {
   min-height: 70px;
   overflow-x: auto;
-  border-top: 1px solid var(--line);
 }
 .stage {
   display: grid;
