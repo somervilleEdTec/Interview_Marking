@@ -4,6 +4,11 @@ import type { ControllerProfileId } from "../../src/input/controller-profiles";
 
 export interface InterviewAPI {
   loadStore: () => Promise<unknown>;
+  resetMarking: () => Promise<{
+    store: unknown;
+    session: Session | null;
+  }>;
+  fullReset: () => Promise<{ store: unknown }>;
   pickWorkbook: () => Promise<{
     path?: string;
     codes?: Code[];
@@ -45,6 +50,8 @@ export interface InterviewAPI {
 
 const api: InterviewAPI = {
   loadStore: () => ipcRenderer.invoke("store:load"),
+  resetMarking: () => ipcRenderer.invoke("store:resetMarking"),
+  fullReset: () => ipcRenderer.invoke("store:fullReset"),
   pickWorkbook: () => ipcRenderer.invoke("workbook:pick"),
   assignKey: (sheetName, key) =>
     ipcRenderer.invoke("codes:assignKey", sheetName, key),

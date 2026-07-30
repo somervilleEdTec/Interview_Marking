@@ -9,7 +9,11 @@ import type { Code, Session, Mark } from "./model/types";
 import { resolveMarkLines } from "./model/resolve";
 import { renderSetup } from "./screens/setup";
 import type { InputMode } from "./screens/controller-layout";
-import { renderMarking, flashMarkingSlot, stopMarkingClock } from "./screens/marking";
+import {
+  renderMarking,
+  flashMarkingSlot,
+  stopMarkingClock,
+} from "./screens/marking";
 import { renderReview } from "./screens/review";
 import { renderResolve } from "./screens/resolve";
 import { listConnectedPads, resolveAssignedPad } from "./input/gamepad-detect";
@@ -269,10 +273,7 @@ function paint(): void {
     });
   } else if (state.screen === "marking") {
     const assigned = resolveAssignedPad(state.pads, state.assignedGamepadId);
-    const profile =
-      assigned?.profile ??
-      state.pads[0]?.profile ??
-      null;
+    const profile = assigned?.profile ?? state.pads[0]?.profile ?? null;
     renderMarking(el, {
       codes: state.codes,
       session: state.session,
@@ -368,6 +369,43 @@ function paint(): void {
         }
         state.session = await window.interview.updateSession(state.session);
         paint();
+      },
+      onReset: async () => {
+        if (
+          !confirm(
+            "Reset marking data and transcripts? Criteria, button map, and controller settings are kept.",
+          )
+        ) {
+          return;
+        }
+        const res = await window.interview.resetMarking();
+        state.session = res.session;
+        state.armed = false;
+        state.ticks = [];
+        state.flashSlot = null;
+        state.averageMarks = 0;
+        paint();
+      },
+      onFullReset: async () => {
+        if (
+          !confirm(
+            "Full Reset clears ALL settings and data (criteria, bindings, sessions, transcripts). Continue?",
+          )
+        ) {
+          return;
+        }
+        await window.interview.fullReset();
+        state.codes = [];
+        state.workbookPath = "";
+        state.sheetSuggestions = [];
+        state.session = null;
+        state.armed = false;
+        state.ticks = [];
+        state.flashSlot = null;
+        state.averageMarks = 0;
+        state.assignedGamepadId = null;
+        state.inputMode = "controller";
+        navigate("setup");
       },
     });
   }
