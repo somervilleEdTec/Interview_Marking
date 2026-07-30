@@ -1,4 +1,10 @@
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from "fs";
+import {
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  renameSync,
+} from "fs";
 import { dirname, join } from "path";
 import type { Project, Session, Mark, SaturationEvent } from "../model/types";
 import { maxMarkAtMs } from "../model/time";
@@ -34,6 +40,12 @@ export function loadStore(userData: string): AppStore {
       saturation: raw.saturation ?? [],
     };
   } catch {
+    // Preserve a corrupt store for recovery instead of silently wiping it.
+    try {
+      renameSync(p, `${p}.corrupt-${Date.now()}`);
+    } catch {
+      /* ignore backup failure */
+    }
     return empty();
   }
 }
@@ -74,8 +86,10 @@ export function freezeOrphanSessionClocks(userData: string): AppStore {
 export function saveStore(userData: string, store: AppStore): void {
   const p = storePath(userData);
   mkdirSync(dirname(p), { recursive: true });
-  // Compact JSON — marks append frequently; pretty-print wasted I/O
-  writeFileSync(p, JSON.stringify(store), "utf8");
+  // Atomic write — avoid truncated JSON if the process dies mid-save.
+  const tmp = `${p}.tmp`;
+  writeFileSync(tmp, JSON.stringify(store), "utf8");
+  renameSync(tmp, p);
 }
 
 /** Persist immediately after each mark (crash-safe). */

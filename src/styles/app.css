@@ -203,10 +203,6 @@ textarea:focus {
   font: 500 var(--t-sm) var(--font-mono);
   color: var(--ink-3);
 }
-.tile--wide {
-  grid-column: span 2;
-  min-height: 104px;
-}
 .tile--nofit .tile__key {
   color: var(--danger);
 }
@@ -436,9 +432,6 @@ h3 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--s3);
 }
-.tiles--wide {
-  grid-template-columns: 1fr 1fr;
-}
 .tile {
   display: grid;
   gap: var(--s2);
@@ -459,12 +452,6 @@ h3 {
 }
 .tile-count {
   color: var(--ink-3);
-}
-.tile--wide {
-  min-height: 104px;
-}
-.tile--danger .tile-key {
-  color: var(--danger);
 }
 
 /* Controller face diamond (Mark + Setup bind) */

@@ -112,6 +112,16 @@ async function bootstrap(): Promise<void> {
     },
   );
 
+  let paintQueued = false;
+  const requestPaint = (): void => {
+    if (paintQueued) return;
+    paintQueued = true;
+    queueMicrotask(() => {
+      paintQueued = false;
+      paint();
+    });
+  };
+
   window.interview.onSession((session: Session) => {
     state.session = session;
     if (
@@ -120,7 +130,7 @@ async function bootstrap(): Promise<void> {
     ) {
       return;
     }
-    paint();
+    requestPaint();
   });
 
   window.interview.onArmed((armed: boolean) => {
@@ -131,7 +141,7 @@ async function bootstrap(): Promise<void> {
     ) {
       return;
     }
-    paint();
+    requestPaint();
   });
 
   window.addEventListener("gamepadconnected", () => {
@@ -225,8 +235,12 @@ function navigate(screen: Screen): void {
   paint();
 }
 
+let lastOverlayOn: boolean | null = null;
+
 function syncMarkOverlay(): void {
   const on = state.screen === "marking" && !!state.session;
+  if (on === lastOverlayOn) return;
+  lastOverlayOn = on;
   document.body.classList.toggle("is-mark-overlay", on);
   void window.interview.setMarkOverlay(on);
 }
@@ -346,8 +360,8 @@ function paint(): void {
           paint();
           return;
         }
+        // onArmed + onSession coalesce into one paint via requestPaint.
         state.armed = await window.interview.setArmed(!state.armed);
-        paint();
       },
       onEnd: async () => {
         await window.interview.setArmed(false);

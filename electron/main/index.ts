@@ -52,9 +52,7 @@ let mainWindow: BrowserWindow | null = null;
 let armed = false;
 let activeSessionId: string | null = null;
 let codes: Code[] = [];
-let gamepadTimer: NodeJS.Timeout | null = null;
 let lastPadSignature = "";
-let lastProfileId: string | null = null;
 /** Bounds before Mark overlay mode (restored when leaving Mark). */
 let preOverlayBounds: Rectangle | null = null;
 let markOverlayOn = false;
@@ -214,8 +212,6 @@ function startGamepadBridge(): void {
       lastPadSignature = sig;
       if (!buttons.some(Boolean)) return { action: null, connected: true };
       const profile = profileId ? profileById(profileId) : undefined;
-      lastProfileId = profileId ?? null;
-      void lastProfileId;
       const action = gamepadAction(buttons, l1, profile);
       if (!action) return { action: null, connected: true };
       // Start/Stop must work while stopped; other actions need marking started.
@@ -265,9 +261,11 @@ function createWindow(): void {
 
 function setMarkOverlay(on: boolean): boolean {
   if (!mainWindow || mainWindow.isDestroyed()) return false;
-  if (on === markOverlayOn) return on;
+  // Only enter overlay when a live session exists (defense in depth).
+  const enabled = on === true && !!activeSessionId;
+  if (enabled === markOverlayOn) return enabled;
 
-  if (on) {
+  if (enabled) {
     if (!preOverlayBounds) preOverlayBounds = mainWindow.getBounds();
     markOverlayOn = true;
     mainWindow.setAlwaysOnTop(true, "floating");
@@ -290,7 +288,7 @@ function setMarkOverlay(on: boolean): boolean {
       preOverlayBounds = null;
     }
   }
-  return on;
+  return enabled;
 }
 
 app.whenReady().then(() => {
@@ -520,8 +518,8 @@ app.whenReady().then(() => {
   });
 
   /** Compact always-on-top Mark window for overlaying on Zoom. */
-  ipcMain.handle("window:setMarkOverlay", (_e, on: boolean) =>
-    setMarkOverlay(on),
+  ipcMain.handle("window:setMarkOverlay", (_e, on: unknown) =>
+    setMarkOverlay(on === true),
   );
 
   ipcMain.handle("session:get", (_e, id?: string) => {
@@ -601,8 +599,8 @@ app.whenReady().then(() => {
   });
 
   app.on("will-quit", () => {
+    setMarkOverlay(false);
     unregisterShortcuts({ notify: false });
-    if (gamepadTimer) clearInterval(gamepadTimer);
   });
 });
 

@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from "fs";
+import { mkdtempSync, readFileSync, rmSync, existsSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import { describe, it, expect, afterEach } from "vitest";
@@ -141,5 +141,17 @@ describe("fullResetStore", () => {
       assignedGamepadId: null,
     });
     expect(loadStore(dir)).toEqual(next);
+  });
+});
+
+describe("saveStore", () => {
+  it("writes atomically without leaving a .tmp file", () => {
+    const dir = tmpUserData();
+    seededStore(dir);
+    expect(existsSync(join(dir, "interview-marking-store.json"))).toBe(true);
+    expect(existsSync(join(dir, "interview-marking-store.json.tmp"))).toBe(
+      false,
+    );
+    expect(loadStore(dir).project?.sessions).toHaveLength(1);
   });
 });
