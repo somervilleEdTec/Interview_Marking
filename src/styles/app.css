@@ -468,6 +468,111 @@ h3 {
 .tile--danger .tile-key {
   color: var(--danger);
 }
+
+/* Controller face diamond (Mark + Setup bind) */
+.face-mark {
+  display: grid;
+  gap: var(--s5);
+  justify-items: center;
+}
+.face-mark__group {
+  display: grid;
+  gap: var(--s3);
+  justify-items: center;
+  width: 100%;
+  max-width: 28rem;
+}
+.face-mark__head {
+  margin: 0;
+  font: 600 var(--t-sm) var(--font-sans);
+  color: var(--ink-2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.face-diamond {
+  width: 100%;
+  max-width: 22rem;
+}
+.face-diamond__pad {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-areas:
+    ". n ."
+    "w . e"
+    ". s .";
+  gap: var(--s2);
+  aspect-ratio: 1;
+}
+.face-btn--n {
+  grid-area: n;
+}
+.face-btn--w {
+  grid-area: w;
+}
+.face-btn--e {
+  grid-area: e;
+}
+.face-btn--s {
+  grid-area: s;
+}
+.face-btn {
+  display: grid;
+  gap: var(--s1);
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  min-height: 0;
+  padding: var(--s3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  aspect-ratio: 1;
+}
+.face-btn .tile-key {
+  font-size: clamp(1rem, 2.8vw, 1.75rem);
+  line-height: 1.1;
+}
+.face-btn .tile-name {
+  font-size: var(--t-xs);
+}
+.face-btn--empty {
+  visibility: hidden;
+  pointer-events: none;
+  border: none;
+  background: transparent;
+}
+.face-btn--bind {
+  border-radius: var(--r-lg);
+  position: relative;
+  cursor: copy;
+}
+.face-btn--bind .bind-press {
+  font: 600 var(--t-sm) var(--font-mono);
+  color: var(--accent-strong, var(--accent));
+}
+.face-btn--bind .bind-label {
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.face-btn--bind .bind-label.is-empty {
+  color: var(--ink-3);
+}
+.bind-groups--face {
+  display: grid;
+  gap: var(--s4);
+  justify-items: center;
+}
+.bind-groups--face .bind-group {
+  width: 100%;
+  max-width: 22rem;
+  display: grid;
+  gap: var(--s2);
+  justify-items: center;
+}
+.bind-groups--face .face-diamond__pad {
+  aspect-ratio: 1;
+}
 .mark-actions {
   display: flex;
   gap: var(--s3);

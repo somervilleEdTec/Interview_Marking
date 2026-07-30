@@ -12,12 +12,12 @@ describe("exportCodebookCsv", () => {
 });
 
 describe("gamepadAction", () => {
-  it("maps L2 to general and Circle to undo", () => {
+  it("maps L2 to general and RB to undo", () => {
     const buttons = Array(16).fill(false);
     buttons[6] = true;
     expect(gamepadAction(buttons, false)).toEqual({ type: "general" });
     buttons[6] = false;
-    buttons[1] = true;
+    buttons[5] = true;
     expect(gamepadAction(buttons, false)).toEqual({ type: "undo" });
   });
 });

@@ -37,7 +37,7 @@ export function gamepadAction(
   profile?: ControllerProfile,
 ): MarkAction | null {
   const undoIdx =
-    profile?.buttons.find((b) => b.role.kind === "undo")?.index ?? 1;
+    profile?.buttons.find((b) => b.role.kind === "undo")?.index ?? 5;
   const generalIdx = profile?.triggerIndices.general ?? 6;
   const nofitIdx = profile?.triggerIndices.nofit ?? 7;
 

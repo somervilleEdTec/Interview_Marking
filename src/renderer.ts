@@ -258,11 +258,18 @@ function paint(): void {
       },
     });
   } else if (state.screen === "marking") {
+    const assigned = resolveAssignedPad(state.pads, state.assignedGamepadId);
+    const profile =
+      assigned?.profile ??
+      state.pads[0]?.profile ??
+      null;
     renderMarking(el, {
       codes: state.codes,
       session: state.session,
       armed: state.armed,
       flashSlot: state.flashSlot,
+      inputMode: state.inputMode,
+      profile,
       onToggleArm: async () => {
         state.armed = await window.interview.setArmed(!state.armed);
         paint();

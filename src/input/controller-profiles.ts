@@ -55,8 +55,8 @@ const STANDARD_BUTTONS: LayoutButton[] = [
   {
     role: { kind: "slot", slot: "F", layer: "primary" },
     zone: "face-e",
-    label: "R1 / RB",
-    index: 5,
+    label: "○ / B",
+    index: 1,
   },
   {
     role: { kind: "slot", slot: "J", layer: "secondary" },
@@ -79,11 +79,11 @@ const STANDARD_BUTTONS: LayoutButton[] = [
   {
     role: { kind: "slot", slot: ";", layer: "secondary" },
     zone: "sec-e",
-    label: "L1+R1",
-    index: 5,
+    label: "L1+○",
+    index: 1,
   },
   { role: { kind: "modifier" }, zone: "l1", label: "L1 / LB", index: 4 },
-  { role: { kind: "undo" }, zone: "undo", label: "○ / B", index: 1 },
+  { role: { kind: "undo" }, zone: "undo", label: "R1 / RB", index: 5 },
   { role: { kind: "general" }, zone: "l2", label: "L2 / LT", index: 6 },
   { role: { kind: "nofit" }, zone: "r2", label: "R2 / RT", index: 7 },
 ];
@@ -101,7 +101,7 @@ function profile(
     if (b.zone === "face-e") return { ...b, label: faceLabels[3] };
     if (b.zone === "undo") {
       const undo =
-        id === "xbox" ? "B" : id === "dualsense" ? "Circle" : b.label;
+        id === "xbox" ? "RB" : id === "dualsense" ? "R1" : b.label;
       return { ...b, label: undo };
     }
     if (b.zone === "l1") {
@@ -139,21 +139,21 @@ export const CONTROLLER_PROFILES: ControllerProfile[] = [
     "xbox",
     "Xbox",
     ["xbox", "x-box", "xinput", "microsoft"],
-    ["X", "Y", "A", "RB"],
+    ["X", "Y", "A", "B"],
   ),
   profile(
     "steam",
     "Steam / Steam Deck",
     ["steam", "valve", "deck"],
-    ["X", "Y", "A", "R1"],
+    ["X", "Y", "A", "B"],
   ),
   profile(
     "dualsense",
     "PlayStation DualSense",
     ["dualsense", "dualshock", "sony", "054c"],
-    ["Square", "Triangle", "Cross", "R1"],
+    ["Square", "Triangle", "Cross", "Circle"],
   ),
-  profile("standard", "Standard gamepad", [], ["X", "Y", "A", "RB"]),
+  profile("standard", "Standard gamepad", [], ["X", "Y", "A", "B"]),
 ];
 
 export function matchProfile(
@@ -183,7 +183,9 @@ export function profileById(id: ControllerProfileId): ControllerProfile {
   );
 }
 
-/** Primary face indices used when !modifier; secondary uses same indices with modifier held. */
-export const PRIMARY_SLOT_INDICES = [2, 3, 0, 5] as const;
+/** Primary face indices used when !modifier; secondary uses same indices with modifier held.
+ * Order matches PRIMARY_SLOTS: West(X/□), North(Y/△), South(A/✕), East(B/○).
+ */
+export const PRIMARY_SLOT_INDICES = [2, 3, 0, 1] as const;
 export const PRIMARY_SLOTS = ["A", "S", "D", "F"] as const;
 export const SECONDARY_SLOTS = ["J", "K", "L", ";"] as const;

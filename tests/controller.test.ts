@@ -41,21 +41,27 @@ describe("matchProfile", () => {
 });
 
 describe("gamepadAction profile-aware", () => {
-  it("maps L2 to general and Circle to undo (default)", () => {
+  it("maps L2 to general and RB/R1 to undo", () => {
     const buttons = Array(16).fill(false);
     buttons[6] = true;
     expect(gamepadAction(buttons, false)).toEqual({ type: "general" });
     buttons[6] = false;
-    buttons[1] = true;
+    buttons[5] = true;
     expect(gamepadAction(buttons, false)).toEqual({ type: "undo" });
   });
 
-  it("maps face buttons to primary slots", () => {
+  it("maps four face buttons to primary slots (W/N/S/E)", () => {
     const buttons = Array(16).fill(false);
-    buttons[2] = true;
+    buttons[2] = true; // X / Square → A
     expect(gamepadAction(buttons, false)).toEqual({
       type: "code",
       slot: "A",
+    });
+    buttons[2] = false;
+    buttons[1] = true; // B / Circle → F
+    expect(gamepadAction(buttons, false, profileById("xbox"))).toEqual({
+      type: "code",
+      slot: "F",
     });
   });
 
@@ -66,6 +72,26 @@ describe("gamepadAction profile-aware", () => {
       type: "code",
       slot: "J",
     });
+    buttons[2] = false;
+    buttons[1] = true;
+    expect(gamepadAction(buttons, true, profileById("xbox"))).toEqual({
+      type: "code",
+      slot: ";",
+    });
+  });
+
+  it("uses Xbox face labels X/Y/A/B not RB on east", () => {
+    const xbox = profileById("xbox");
+    const east = xbox.buttons.find((b) => b.zone === "face-e");
+    expect(east?.label).toBe("B");
+    expect(east?.index).toBe(1);
+    expect(xbox.buttons.find((b) => b.role.kind === "undo")?.index).toBe(5);
+  });
+
+  it("uses DualSense Square/Triangle/Cross/Circle", () => {
+    const ds = profileById("dualsense");
+    expect(ds.buttons.find((b) => b.zone === "face-w")?.label).toBe("Square");
+    expect(ds.buttons.find((b) => b.zone === "face-e")?.label).toBe("Circle");
   });
 });
 
