@@ -9,7 +9,6 @@ export interface ResolveProps {
   onOffset: (sec: number) => void;
   onWindow: (markId: string, before: number, after: number) => void;
   onAppend: () => void;
-  onCodebook: () => void;
 }
 
 export function renderResolve(root: HTMLElement, props: ResolveProps): void {
@@ -44,7 +43,6 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
         <button type="button" class="btn btn--primary" id="import">Import transcript</button>
         <button type="button" class="btn" id="docx" ${session.transcript ? "" : "disabled"}>Download numbered .docx</button>
         <button type="button" class="btn" id="merge" ${canMerge ? "" : "disabled"}>Merge &amp; export Excel</button>
-        <button type="button" class="btn" id="codebook">Export codebook CSV</button>
       </div>
       <label class="field">Alignment offset (seconds)
         <input id="offset" type="number" step="0.1" value="${session.recordingOffsetSec}" />
@@ -96,9 +94,6 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
   root
     .querySelector("#merge")
     ?.addEventListener("click", () => props.onMergeExport());
-  root
-    .querySelector("#codebook")
-    ?.addEventListener("click", () => props.onCodebook());
   root
     .querySelector("#append")
     ?.addEventListener("click", () => props.onAppend());
