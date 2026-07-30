@@ -47,8 +47,8 @@ export function parseVtt(content: string): TranscriptLine[] {
   return parseSrt(cleaned);
 }
 
-/** Plain prose — no timestamps or speakers (merge export will refuse). */
-export function parseTxt(content: string): TranscriptTurn[] {
+/** Plain prose paragraphs — no timestamps (merge will refuse). */
+export function parseProseTxt(content: string): TranscriptTurn[] {
   return content
     .replace(/\r\n/g, "\n")
     .split(/\n\n+/)
@@ -62,11 +62,34 @@ export function parseTxt(content: string): TranscriptTurn[] {
     }));
 }
 
-/** `[MM:SS] I:/P:` turn paragraphs (DOCX / turn PDF text). */
+/**
+ * TXT may be prose, SRT/VTT, speaker turns, or numbered segments — sniff content.
+ */
+export function parseTxt(content: string): TranscriptTurn[] {
+  const normalized = content.replace(/\r\n/g, "\n");
+  const sample = normalized.slice(0, 8000);
+  if (
+    /^WEBVTT/m.test(sample) ||
+    /\d{2}:\d{2}:\d{2}[.,]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}/.test(sample)
+  ) {
+    return srtOrVttToTurns(
+      /^WEBVTT/m.test(sample) ? parseVtt(normalized) : parseSrt(normalized),
+    );
+  }
+  if (/\[\d{1,2}:\d{2}(?::\d{2})?\]\s+[IP]:/.test(sample)) {
+    return parseSpeakerTurns(normalized);
+  }
+  if (/\d+\s+\d{2}:\d{2}:\d{2}/.test(sample)) {
+    return parseNumberedSegments(normalized);
+  }
+  return parseProseTxt(normalized);
+}
+
+/** `[MM:SS]` or `[HH:MM:SS] I:/P:` turn paragraphs (DOCX / turn PDF text). */
 export function parseSpeakerTurns(content: string): TranscriptTurn[] {
   const lines = content.replace(/\r\n/g, "\n").split("\n");
   const turns: TranscriptTurn[] = [];
-  const re = /^\[(\d{1,2}:\d{2})\]\s+([IP]):\s*(.*)$/;
+  const re = /^\[(\d{1,2}:\d{2}(?::\d{2})?)\]\s+([IP]):\s*(.*)$/;
   for (const raw of lines) {
     const line = raw.trim();
     if (!line) continue;
@@ -79,13 +102,14 @@ export function parseSpeakerTurns(content: string): TranscriptTurn[] {
         text: m[3].trim(),
       });
     } else if (turns.length) {
-      turns[turns.length - 1].text = `${turns[turns.length - 1].text} ${line}`.trim();
+      turns[turns.length - 1].text =
+        `${turns[turns.length - 1].text} ${line}`.trim();
     }
   }
   return turns;
 }
 
-/** Numbered `N HH:MM:SS text` segments (numbered PDF). */
+/** Numbered `N HH:MM:SS text` segments (numbered PDF / TSV extracts). */
 export function parseNumberedSegments(content: string): TranscriptTurn[] {
   const lines = content.replace(/\r\n/g, "\n").split("\n");
   const turns: TranscriptTurn[] = [];
@@ -114,7 +138,7 @@ export function detectPdfFamily(
   content: string,
 ): "speaker" | "numbered" | "unknown" {
   const sample = content.slice(0, 4000);
-  if (/\[\d{1,2}:\d{2}\]\s+[IP]:/.test(sample)) return "speaker";
+  if (/\[\d{1,2}:\d{2}(?::\d{2})?\]\s+[IP]:/.test(sample)) return "speaker";
   if (/\d+\s*\d{2}:\d{2}:\d{2}/.test(sample)) return "numbered";
   return "unknown";
 }

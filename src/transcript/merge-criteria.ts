@@ -22,14 +22,16 @@ export function mergeCriteriaByNearestTimestamp(
 ): MergedRow[] {
   const timed = turns
     .map((t, index) => ({ t, index }))
-    .filter((x) => x.t.startMs != null) as {
+    .filter(
+      (x) => typeof x.t.startMs === "number" && Number.isFinite(x.t.startMs),
+    ) as {
     t: TranscriptTurn & { startMs: number };
     index: number;
   }[];
 
   if (!timed.length) {
     throw new Error(
-      "Transcript has no timestamps — cannot merge criteria by time",
+      "Transcript has no timestamps — cannot merge criteria by time. Import SRT, VTT, or a timestamped DOCX/PDF (not plain prose TXT).",
     );
   }
 

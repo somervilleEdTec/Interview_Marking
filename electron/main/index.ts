@@ -34,7 +34,7 @@ import {
 import { loadTranscriptFile } from "../../src/transcript/load";
 import { writeNumberedDocx } from "../../src/transcript/docx";
 import { mergeCriteriaByNearestTimestamp } from "../../src/transcript/merge-criteria";
-import { linesToTurns } from "../../src/transcript/turns";
+import { turnsForMerge } from "../../src/transcript/turns-for-merge";
 import { writeTaggedExport } from "../../src/excel/tagged-export";
 import { resolveMarkLines, DEFAULT_WINDOW } from "../../src/model/resolve";
 import { elapsedSinceStart } from "../../src/model/time";
@@ -428,9 +428,7 @@ app.whenReady().then(() => {
       (s) => s.id === activeSessionId,
     );
     if (!session) return { error: "No active session" };
-    const turns =
-      session.transcriptTurns ??
-      (session.transcript ? linesToTurns(session.transcript) : []);
+    const turns = turnsForMerge(session);
     if (!turns.length) return { error: "No transcript" };
     const coded = session.marks.filter((m) => !m.dropped && m.codeRef);
     if (!coded.length) return { error: "No coded marks to merge" };

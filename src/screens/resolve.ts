@@ -1,5 +1,6 @@
 import type { Session } from "../model/types";
 import { formatInterviewTime, markAtToMs } from "../model/time";
+import { sessionHasTimedTranscript } from "../transcript/turns-for-merge";
 
 export interface ResolveProps {
   session: Session | null;
@@ -29,16 +30,14 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
     bySheet.set(m.codeRef!, list);
   }
 
-  const hasTurns =
-    (session.transcriptTurns?.length ?? 0) > 0 ||
-    (session.transcript?.length ?? 0) > 0;
+  const hasTimed = sessionHasTimedTranscript(session);
   const hasCoded = session.marks.some((m) => !m.dropped && m.codeRef);
-  const canMerge = hasTurns && hasCoded;
+  const canMerge = hasTimed && hasCoded;
 
   root.innerHTML = `
     <section class="panel panel--wide">
       <h1>Transcript &amp; write-back</h1>
-      <p class="lede">Import SRT, VTT, TXT, DOCX, or PDF. Merge tags criteria onto nearest transcript timestamps without changing the source files.</p>
+      <p class="lede">Import SRT, VTT, TXT, DOCX, or PDF. Merge needs a timestamped transcript and coded marks.</p>
       <div class="row">
         <button type="button" class="btn btn--primary" id="import">Import transcript</button>
         <button type="button" class="btn" id="docx" ${session.transcript ? "" : "disabled"}>Download numbered .docx</button>
@@ -47,7 +46,13 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
       <label class="field">Alignment offset (seconds)
         <input id="offset" type="number" step="0.1" value="${session.recordingOffsetSec}" />
       </label>
-      <p class="hint">Adjust so mark times (from 0:00) line up with the recording. ${session.transcript ? session.transcript.length + " transcript lines" : "No transcript yet"}</p>
+      <p class="hint">Adjust so mark times (from 0:00) line up with the recording. ${
+        hasTimed
+          ? `${session.transcript?.length ?? session.transcriptTurns?.length ?? 0} timestamped lines`
+          : session.transcriptTurns?.length
+            ? "Transcript imported but has no timestamps — use SRT/VTT/DOCX/PDF"
+            : "No transcript yet"
+      }</p>
       <ul class="resolve-list">
         ${session.marks
           .filter((m) => !m.dropped)
