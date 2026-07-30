@@ -7,7 +7,11 @@ export interface CriteriaEditorProps {
   /** Show a Keyboard shortcut when the user is still on controller mode. */
   showKeyboardOption?: boolean;
   onUseKeyboard?: () => void;
-  onUpsert: (index: number, label: string) => void;
+  onUpsert: (
+    index: number,
+    label: string,
+    opts?: { focusNext?: boolean },
+  ) => void;
   onRemove: (index: number) => void;
 }
 
@@ -86,16 +90,17 @@ export function renderCriteriaEditor(
     });
   root.querySelectorAll(".criteria-input").forEach((el) => {
     const input = el as HTMLInputElement;
-    const commit = () => {
+    const commit = (opts?: { focusNext?: boolean }) => {
       const index = Number(input.dataset.index);
-      props.onUpsert(index, input.value);
+      props.onUpsert(index, input.value, opts);
     };
-    input.addEventListener("change", commit);
+    input.addEventListener("change", () => commit());
     input.addEventListener("keydown", (e) => {
-      if ((e as KeyboardEvent).key === "Enter") {
-        e.preventDefault();
-        input.blur();
-      }
+      if ((e as KeyboardEvent).key !== "Enter") return;
+      e.preventDefault();
+      const index = Number(input.dataset.index);
+      // Move to the next row unless this is already the 8th criterion.
+      commit({ focusNext: index < MAX - 1 });
     });
   });
 

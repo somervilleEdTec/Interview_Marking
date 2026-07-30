@@ -286,10 +286,16 @@ function paint(): void {
         if (codes) state.codes = codes;
         paint();
       },
-      onUpsertCriterion: async (index, label) => {
+      onUpsertCriterion: async (index, label, opts) => {
         const codes = await window.interview.upsertCriterion(index, label);
         if (codes) state.codes = codes;
         paint();
+        if (opts?.focusNext) {
+          const next = document.querySelector(
+            `.criteria-input[data-index="${index + 1}"]`,
+          ) as HTMLInputElement | null;
+          next?.focus();
+        }
       },
       onRemoveCriterion: async (index) => {
         const codes = await window.interview.removeCriterion(index);

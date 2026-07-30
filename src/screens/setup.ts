@@ -14,7 +14,11 @@ export interface SetupProps {
   assignedGamepadId: string | null;
   inputMode: InputMode;
   onAssignKey: (sheetName: string, key: string | null) => void;
-  onUpsertCriterion: (index: number, label: string) => void;
+  onUpsertCriterion: (
+    index: number,
+    label: string,
+    opts?: { focusNext?: boolean },
+  ) => void;
   onRemoveCriterion: (index: number) => void;
   onAssignGamepad: (id: string | null) => void;
   onOpenBluetooth: () => void;
