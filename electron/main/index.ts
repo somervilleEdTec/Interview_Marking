@@ -74,6 +74,10 @@ function slotToCode(slot: MarkSlot): string | null {
 }
 
 function handleAction(action: MarkAction): void {
+  if (action.type === "toggleArmed") {
+    void toggleArmedFromPad();
+    return;
+  }
   if (!armed || !activeSessionId) return;
   if (action.type === "undo") {
     const store = loadStore(userData());
@@ -108,8 +112,8 @@ function handleAction(action: MarkAction): void {
   send("mark:captured", { mark, session });
 }
 
-function registerShortcuts(): void {
-  unregisterShortcuts({ notify: false });
+/** Bind home-row global shortcuts without changing armed state. */
+function bindKeyboardShortcuts(): void {
   for (const [key, action] of Object.entries(KEYBOARD_MAP)) {
     const accel =
       key === "Space"
@@ -122,6 +126,11 @@ function registerShortcuts(): void {
     const ok = globalShortcut.register(accel, () => handleAction(action));
     if (!ok) console.warn("Failed to register", accel);
   }
+}
+
+function registerShortcuts(): void {
+  globalShortcut.unregisterAll();
+  bindKeyboardShortcuts();
   armed = true;
   send("input:armed", true);
 }
@@ -133,13 +142,67 @@ function unregisterShortcuts(opts: { notify?: boolean } = {}): void {
   if (notify) send("input:armed", false);
 }
 
+/** Apply Start/Stop (armed) including interview clock pause/resume. */
+function applyArmed(on: boolean): boolean {
+  const store = loadStore(userData());
+  const session =
+    store.project?.sessions.find((s) => s.id === activeSessionId) ??
+    store.project?.sessions.at(-1);
+  if (session) activeSessionId = session.id;
+  if (on) {
+    if (session) resumeSessionClock(session);
+    registerShortcuts();
+  } else {
+    if (session) pauseSessionClock(session);
+    unregisterShortcuts();
+  }
+  if (session) {
+    session.armed = on;
+    saveStore(userData(), store);
+    send("session:updated", session);
+  }
+  return on;
+}
+
+function startDefaultSession(): Session {
+  const session: Session = {
+    id: randomUUID(),
+    participantNumber: "P1",
+    interviewNumber: "I1",
+    startedAt: new Date().toISOString(),
+    defaultWindow: { before: 45, after: 15 },
+    marks: [],
+    recordingOffsetSec: 0,
+    armed: true,
+  };
+  activeSessionId = session.id;
+  upsertSession(userData(), session);
+  registerShortcuts();
+  send("session:updated", session);
+  return session;
+}
+
+function toggleArmedFromPad(): void {
+  if (!activeSessionId) {
+    const store = loadStore(userData());
+    const existing = store.project?.sessions.at(-1);
+    if (existing) {
+      activeSessionId = existing.id;
+      applyArmed(true);
+      return;
+    }
+    startDefaultSession();
+    return;
+  }
+  applyArmed(!armed);
+}
+
 /** Poll renderer-reported gamepad OR keepalive channel — renderer sends button state. */
 function startGamepadBridge(): void {
   ipcMain.removeHandler("gamepad:buttons");
   ipcMain.handle(
     "gamepad:buttons",
     (_e, buttons: boolean[], l1: boolean, profileId?: ControllerProfileId) => {
-      if (!armed) return { action: null, connected: true };
       const sig =
         buttons.map((b) => (b ? "1" : "0")).join("") +
         (l1 ? "L" : "") +
@@ -151,7 +214,14 @@ function startGamepadBridge(): void {
       lastProfileId = profileId ?? null;
       void lastProfileId;
       const action = gamepadAction(buttons, l1, profile);
-      if (action) handleAction(action);
+      if (!action) return { action: null, connected: true };
+      // Start/Stop must work while stopped; other actions need marking started.
+      if (action.type === "toggleArmed") {
+        handleAction(action);
+        return { action, connected: true };
+      }
+      if (!armed) return { action: null, connected: true };
+      handleAction(action);
       return { action, connected: true };
     },
   );
@@ -405,21 +475,12 @@ app.whenReady().then(() => {
     },
   );
 
-  ipcMain.handle("session:arm", (_e, on: boolean) => {
-    if (on) registerShortcuts();
-    else unregisterShortcuts();
-    const store = loadStore(userData());
-    const session =
-      store.project?.sessions.find((s) => s.id === activeSessionId) ??
-      store.project?.sessions.at(-1);
-    if (session) {
-      activeSessionId = session.id;
-      if (on) resumeSessionClock(session);
-      else pauseSessionClock(session);
-      session.armed = on;
-      saveStore(userData(), store);
-      send("session:updated", session);
-    }
+  ipcMain.handle("session:arm", (_e, on: boolean) => applyArmed(on));
+
+  /** Register/unregister home-row shortcuts without changing Start/Stop state. */
+  ipcMain.handle("shortcuts:setActive", (_e, on: boolean) => {
+    globalShortcut.unregisterAll();
+    if (on && armed) bindKeyboardShortcuts();
     return on;
   });
 

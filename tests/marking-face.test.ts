@@ -84,7 +84,8 @@ describe("padMapHtml face layout", () => {
     expect(html).toContain(">LB<");
     expect(html).toContain("Rapport");
     expect(html).toContain(">B<");
-    expect(html).toContain("Menu · Undo");
+    expect(html).toContain("Menu · Start/Stop");
+    expect(html).toContain("View · Undo");
     expect(html).not.toContain("LB + X");
     expect(html).not.toContain("Hold");
   });

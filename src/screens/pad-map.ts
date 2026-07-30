@@ -27,6 +27,7 @@ export function padMapHtml(
       ${shoulders}
     </div>
     <p class="bind-fixed mono">
+      <span>${escapeHtml(fixedRoleLabel(profile, "toggleArmed"))} · Start/Stop</span>
       <span>${escapeHtml(fixedRoleLabel(profile, "undo"))} · Undo</span>
       <span>Space · General</span>
       <span>N · No-fit</span>

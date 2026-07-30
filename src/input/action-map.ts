@@ -11,7 +11,8 @@ export type MarkAction =
   | { type: "code"; slot: Exclude<MarkSlot, "general" | "nofit"> }
   | { type: "general" }
   | { type: "nofit" }
-  | { type: "undo" };
+  | { type: "undo" }
+  | { type: "toggleArmed" };
 
 /** Home-row keys → actions (Electron accelerator names). */
 export const KEYBOARD_MAP: Record<string, MarkAction> = {
@@ -31,15 +32,19 @@ export const KEYBOARD_MAP: Record<string, MarkAction> = {
 /**
  * Map gamepad button edges → mark action.
  * Face + LB/LT/RB/RT are direct slot presses (no hold combinations).
+ * Start/Menu/Options toggles Mark Start/Stop; Select/View/Create undoes.
  */
 export function gamepadAction(
   buttons: readonly boolean[],
   _l1Held: boolean,
   profile?: ControllerProfile,
 ): MarkAction | null {
+  const startIdx =
+    profile?.buttons.find((b) => b.role.kind === "toggleArmed")?.index ?? 9;
   const undoIdx =
-    profile?.buttons.find((b) => b.role.kind === "undo")?.index ?? 9;
+    profile?.buttons.find((b) => b.role.kind === "undo")?.index ?? 8;
 
+  if (buttons[startIdx]) return { type: "toggleArmed" };
   if (buttons[undoIdx]) return { type: "undo" };
 
   for (let i = 0; i < FACE_SLOT_INDICES.length; i++) {

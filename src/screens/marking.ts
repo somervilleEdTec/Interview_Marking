@@ -120,8 +120,13 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
   const undoKey = onPad
     ? props.profile
       ? fixedRoleLabel(props.profile, "undo")
-      : "Menu"
+      : "Select"
     : "Backspace";
+  const startKey = onPad
+    ? props.profile
+      ? fixedRoleLabel(props.profile, "toggleArmed")
+      : "Start"
+    : null;
 
   const codesHtml = markingCodesHtml(props, counts);
 
@@ -150,7 +155,7 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
         <button type="button" class="btn ${props.armed ? "" : "btn--primary"}" id="toggle-marking">${props.armed ? "Stop" : "Start"}</button>
         <button type="button" class="btn btn--primary" id="end-session">End session → Review</button>
       </div>
-      <p class="hint">Interview clock starts at 0:00; Stop freezes it. ${escapeHtml(undoKey)} undoes last mark. No sound. Keep eyes on the participant.</p>
+      <p class="hint">Interview clock starts at 0:00; Stop freezes it.${startKey ? ` ${escapeHtml(startKey)} starts/stops marking.` : ""} ${escapeHtml(undoKey)} undoes last mark. No sound. Keep eyes on the participant.</p>
     </section>
   `;
 

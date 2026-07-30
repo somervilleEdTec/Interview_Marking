@@ -41,7 +41,7 @@ describe("matchProfile", () => {
 });
 
 describe("gamepadAction profile-aware", () => {
-  it("maps shoulders to criteria slots and Menu to undo", () => {
+  it("maps Start/Menu to Start/Stop and Select/View to undo", () => {
     const buttons = Array(16).fill(false);
     buttons[6] = true; // LT → K
     expect(gamepadAction(buttons, false)).toEqual({ type: "code", slot: "K" });
@@ -49,7 +49,10 @@ describe("gamepadAction profile-aware", () => {
     buttons[4] = true; // LB → J
     expect(gamepadAction(buttons, false)).toEqual({ type: "code", slot: "J" });
     buttons[4] = false;
-    buttons[9] = true; // Menu / Options → undo
+    buttons[9] = true; // Menu / Options / Start → toggleArmed
+    expect(gamepadAction(buttons, false)).toEqual({ type: "toggleArmed" });
+    buttons[9] = false;
+    buttons[8] = true; // View / Create / Select → undo
     expect(gamepadAction(buttons, false)).toEqual({ type: "undo" });
   });
 
@@ -90,12 +93,15 @@ describe("gamepadAction profile-aware", () => {
     });
   });
 
-  it("uses Xbox face labels X/Y/A/B; undo on Menu", () => {
+  it("uses Xbox face labels X/Y/A/B; Start/Stop on Menu, undo on View", () => {
     const xbox = profileById("xbox");
     const east = xbox.buttons.find((b) => b.zone === "face-e");
     expect(east?.label).toBe("B");
     expect(east?.index).toBe(1);
-    expect(xbox.buttons.find((b) => b.role.kind === "undo")?.index).toBe(9);
+    expect(xbox.buttons.find((b) => b.role.kind === "toggleArmed")?.index).toBe(
+      9,
+    );
+    expect(xbox.buttons.find((b) => b.role.kind === "undo")?.index).toBe(8);
     expect(xbox.buttons.find((b) => b.zone === "shoulder-lb")?.label).toBe(
       "LB",
     );
@@ -122,9 +128,26 @@ describe("gamepad-detect", () => {
     const pads = listConnectedPads([fake, null]);
     expect(pads).toHaveLength(1);
     expect(pads[0].profileId).toBe("xbox");
+    expect(pads[0].label).toBe("Xbox");
     expect(resolveAssignedPad(pads, null)?.id).toBe(fake.id);
     expect(resolveAssignedPad(pads, fake.id)?.id).toBe(fake.id);
     expect(resolveAssignedPad(pads, "missing")?.id).toBe(fake.id);
+  });
+
+  it("labels generic HID pads with the profile display name", () => {
+    const fake = {
+      index: 0,
+      id: "Standard HID-compliant game controller",
+      mapping: "standard",
+      connected: true,
+      buttons: [],
+      axes: [],
+      timestamp: 0,
+    } as unknown as Gamepad;
+    const pads = listConnectedPads([fake]);
+    expect(pads[0].profileId).toBe("standard");
+    expect(pads[0].label).toBe("Standard gamepad");
+    expect(pads[0].label).not.toContain("HID-compliant");
   });
 });
 
