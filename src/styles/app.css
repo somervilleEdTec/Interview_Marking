@@ -620,13 +620,6 @@ h3 {
 .bind-groups--face .face-diamond__pad {
   aspect-ratio: 1;
 }
-.shoulder-row {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--s2);
-  width: 100%;
-  max-width: 28rem;
-}
 .shoulder-col {
   display: grid;
   gap: var(--s2);
