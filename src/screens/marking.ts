@@ -115,8 +115,6 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
   }
   const total = [...counts.values()].reduce((a, b) => a + b, 0);
   const onPad = props.inputMode === "controller";
-  const generalKey = "Space";
-  const nofitKey = "N";
   const undoKey = onPad
     ? props.profile
       ? fixedRoleLabel(props.profile, "undo")
@@ -139,18 +137,6 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
         <span class="meta" id="mark-meta">${escapeHtml(props.session.participantNumber)} · ${escapeHtml(props.session.interviewNumber)} · ${total} marks</span>
       </div>
       ${codesHtml}
-      <div class="tiles tiles--wide">
-        <div class="tile tile--wide ${props.flashSlot === "general" ? "flash" : ""}" data-slot="general">
-          <span class="tile-key">${escapeHtml(generalKey)}</span>
-          <span class="tile-name">Mark this moment</span>
-          <span class="tile-count mono">${counts.get("general") ?? 0}</span>
-        </div>
-        <div class="tile tile--wide tile--danger ${props.flashSlot === "nofit" ? "flash" : ""}" data-slot="nofit">
-          <span class="tile-key">${escapeHtml(nofitKey)}</span>
-          <span class="tile-name">Doesn't fit</span>
-          <span class="tile-count mono">${counts.get("nofit") ?? 0}</span>
-        </div>
-      </div>
       <div class="mark-actions">
         <button type="button" class="btn ${props.armed ? "" : "btn--primary"}" id="toggle-marking">${props.armed ? "Stop" : "Start"}</button>
         <button type="button" class="btn btn--primary" id="end-session">End session → Review</button>
