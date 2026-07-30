@@ -369,21 +369,6 @@ function paint(): void {
         state.session = await window.interview.updateSession(state.session);
         paint();
       },
-      onAppend: async () => {
-        const res = (await window.interview.appendExcel()) as {
-          error?: string;
-          backupPath?: string;
-          written?: number;
-          notes?: Mark[];
-        };
-        if (res?.error) alert(res.error);
-        else {
-          const noteCount = res.notes?.length ?? 0;
-          alert(
-            `Appended ${res.written ?? 0} rows. Backup: ${res.backupPath}. Session notes (uncoded/nofit): ${noteCount}`,
-          );
-        }
-      },
     });
   }
 
