@@ -138,10 +138,10 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
       </div>
       ${codesHtml}
       <div class="mark-actions">
-        <button type="button" class="btn ${props.armed ? "" : "btn--primary"}" id="toggle-marking">${props.armed ? "Stop" : "Start"}</button>
+        <button type="button" class="btn ${props.armed ? "" : "btn--primary"}" id="toggle-marking">${props.armed ? "Pause" : "Start"}</button>
         <button type="button" class="btn btn--primary" id="end-session">End session</button>
       </div>
-      <p class="hint mark-hint">${startKey ? `${escapeHtml(startKey)} · Start/Stop. ` : ""}${escapeHtml(undoKey)} · Undo</p>
+      <p class="hint mark-hint">${startKey ? `${escapeHtml(startKey)} · Start/Pause. ` : ""}${escapeHtml(undoKey)} · Undo</p>
     </section>
   `;
 

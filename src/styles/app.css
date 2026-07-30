@@ -675,7 +675,7 @@ h3 {
   gap: var(--s3);
 }
 
-/* Compact Mark overlay — sit atop Zoom while keeping commands + Stop/End visible */
+/* Compact Mark overlay — sit atop Zoom while keeping commands + Pause/End visible */
 body.is-mark-overlay {
   background: rgb(15 20 25 / 0.94);
 }

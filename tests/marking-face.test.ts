@@ -89,7 +89,7 @@ describe("padMapHtml face layout", () => {
     expect(html).toContain("Rapport");
     expect(html).toContain(">B<");
     expect(html).toContain("Fixed controls (not for criteria)");
-    expect(html).toContain("Start or stop marking on the Mark page");
+    expect(html).toContain("Start or pause marking on the Mark page");
     expect(html).toContain("Undo the last mark");
     expect(html).toContain(">Menu</strong>");
     expect(html).toContain(">View</strong>");
