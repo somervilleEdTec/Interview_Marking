@@ -373,7 +373,7 @@ function paint(): void {
       onReset: async () => {
         if (
           !confirm(
-            "Reset marking data and transcripts? Criteria, button map, and controller settings are kept.",
+            "Reset marking data and transcripts? The interview clock resets to 0:00. Criteria, button map, and controller settings are kept.",
           )
         ) {
           return;

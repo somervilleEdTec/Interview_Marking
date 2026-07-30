@@ -25,6 +25,7 @@ import {
   appendMark,
   resetMarkingData,
   fullResetStore,
+  freezeOrphanSessionClocks,
 } from "../../src/storage/store";
 import {
   readCodes,
@@ -37,7 +38,11 @@ import { mergeCriteriaByNearestTimestamp } from "../../src/transcript/merge-crit
 import { turnsForMerge } from "../../src/transcript/turns-for-merge";
 import { writeTaggedExport } from "../../src/excel/tagged-export";
 import { resolveMarkLines, DEFAULT_WINDOW } from "../../src/model/resolve";
-import { elapsedSinceStart } from "../../src/model/time";
+import {
+  elapsedSinceStart,
+  pauseSessionClock,
+  resumeSessionClock,
+} from "../../src/model/time";
 import type { Mark, Session, MarkSlot, Code } from "../../src/model/types";
 import { codeParent } from "../../src/model/hierarchy";
 import { canSendToWindow } from "./safe-send";
@@ -184,10 +189,17 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  // Stop runaway interview clocks left from prior installs / unclean exits.
+  freezeOrphanSessionClocks(userData());
   createWindow();
   startGamepadBridge();
   const initial = loadStore(userData());
   codes = initial.project?.codes ?? [];
+  const savedId = initial.activeSessionId;
+  activeSessionId =
+    savedId && initial.project?.sessions.some((s) => s.id === savedId)
+      ? savedId
+      : (initial.project?.sessions.at(-1)?.id ?? null);
 
   session.defaultSession.setPermissionRequestHandler((_wc, _perm, cb) =>
     cb(false),
@@ -397,12 +409,16 @@ app.whenReady().then(() => {
     if (on) registerShortcuts();
     else unregisterShortcuts();
     const store = loadStore(userData());
-    const session = store.project?.sessions.find(
-      (s) => s.id === activeSessionId,
-    );
+    const session =
+      store.project?.sessions.find((s) => s.id === activeSessionId) ??
+      store.project?.sessions.at(-1);
     if (session) {
+      activeSessionId = session.id;
+      if (on) resumeSessionClock(session);
+      else pauseSessionClock(session);
       session.armed = on;
       saveStore(userData(), store);
+      send("session:updated", session);
     }
     return on;
   });

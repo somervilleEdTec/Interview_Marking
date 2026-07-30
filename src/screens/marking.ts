@@ -1,6 +1,6 @@
 import type { Code, Session } from "../model/types";
 import { CODE_SLOTS } from "../model/types";
-import { elapsedSinceStart, formatInterviewTime } from "../model/time";
+import { displayElapsedMs, formatInterviewTime } from "../model/time";
 import type { ControllerProfile } from "../input/controller-profiles";
 import type { InputMode } from "./controller-layout";
 import { fixedRoleLabel, markPadHtml } from "./face-layout";
@@ -18,8 +18,8 @@ export interface MarkingProps {
   onEnd: () => void;
 }
 
-function clockText(startedAt: string | undefined): string {
-  return formatInterviewTime(elapsedSinceStart(startedAt));
+function clockText(session: Session): string {
+  return formatInterviewTime(displayElapsedMs(session));
 }
 
 function assignedCodes(
@@ -130,7 +130,7 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
     <section class="mark-main">
       <div class="status-row">
         <span class="status ${props.armed ? "status--live" : ""}">${props.armed ? "Marking" : "Stopped"}</span>
-        <span class="mono clock" id="clock">${clockText(props.session.startedAt)}</span>
+        <span class="mono clock" id="clock">${clockText(props.session)}</span>
         <span class="meta" id="mark-meta">${escapeHtml(props.session.participantNumber)} · ${escapeHtml(props.session.interviewNumber)} · ${total} marks</span>
       </div>
       ${codesHtml}
@@ -150,17 +150,20 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
         <button type="button" class="btn ${props.armed ? "" : "btn--primary"}" id="toggle-marking">${props.armed ? "Stop" : "Start"}</button>
         <button type="button" class="btn btn--primary" id="end-session">End session → Review</button>
       </div>
-      <p class="hint">Interview clock starts at 0:00. ${escapeHtml(undoKey)} undoes last mark. No sound. Keep eyes on the participant.</p>
+      <p class="hint">Interview clock starts at 0:00; Stop freezes it. ${escapeHtml(undoKey)} undoes last mark. No sound. Keep eyes on the participant.</p>
     </section>
   `;
 
   stopMarkingClock();
   const clock = root.querySelector("#clock");
-  markingClockTimer = window.setInterval(() => {
-    if (clock && props.session?.startedAt) {
-      clock.textContent = clockText(props.session.startedAt);
-    }
-  }, 250);
+  // Only tick while marking is started; Stop freezes the displayed elapsed.
+  if (props.armed) {
+    markingClockTimer = window.setInterval(() => {
+      if (clock && props.session) {
+        clock.textContent = clockText(props.session);
+      }
+    }, 250);
+  }
   root.querySelector("#toggle-marking")?.addEventListener("click", () => {
     stopMarkingClock();
     props.onToggleMarking();
