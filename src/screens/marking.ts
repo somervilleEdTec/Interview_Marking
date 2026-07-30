@@ -95,7 +95,7 @@ export function renderMarking(root: HTMLElement, props: MarkingProps): void {
     root.innerHTML = `
       <section class="mark-main">
         <h2>Mark</h2>
-        <p class="hint">Start a session to begin marking. Defaults: P1 / I1, window 45/15s.</p>
+        <p class="hint">Start a session to begin marking.</p>
         <div class="mark-actions">
           <button type="button" class="btn btn--primary" id="start-session">Start session</button>
         </div>
