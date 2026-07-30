@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self' ws: http://localhost:*"
+    />
+    <title>Interview Marking</title>
+    <link rel="stylesheet" href="./styles/app.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="shell">
+        <header class="topbar">
+          <span class="eyebrow">Interview Marking</span>
+        </header>
+        <main class="stage"></main>
+        <footer class="ribbon"></footer>
+      </div>
+    </div>
+    <script type="module" src="./renderer.ts"></script>
+  </body>
+</html>

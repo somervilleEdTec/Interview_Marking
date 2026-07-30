@@ -1,0 +1,81 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+:root {
+  color-scheme: dark;
+
+  /* Cool slate surfaces — matches BrowserWindow backgroundColor #0f1419 */
+  --slate-900: #0a0e13;
+  --slate-850: #0f1419;
+  --slate-800: #151d26;
+  --slate-750: #1b2530;
+  --slate-700: #24313e;
+
+  --bg: var(--slate-850);
+  --bg-atmosphere:
+    radial-gradient(120% 90% at 12% -10%, #16303a 0%, transparent 55%),
+    radial-gradient(100% 80% at 96% 0%, #182437 0%, transparent 50%),
+    linear-gradient(
+      180deg,
+      #111923 0%,
+      var(--slate-850) 40%,
+      var(--slate-900) 100%
+    );
+  --surface: var(--slate-800);
+  --surface-raised: var(--slate-750);
+  --surface-sunken: var(--slate-900);
+
+  --line: #22303d;
+  --line-strong: #33475a;
+
+  /* Ink */
+  --ink: #eef4f9;
+  --ink-2: #b3c3d2;
+  --ink-3: #7b8d9f;
+  --ink-on-accent: #04181a;
+
+  /* Accents: teal primary, ink-blue secondary */
+  --accent: #23b8a4;
+  --accent-strong: #3fd9c1;
+  --accent-dim: #12564f;
+  --accent-ink: #4d86dc;
+
+  /* States */
+  --armed: #ffb020;
+  --armed-deep: #7a5104;
+  --success: #46d39a;
+  --danger: #e8555f;
+  --danger-deep: #5a1c22;
+
+  /* Type */
+  --font-sans: "DM Sans", ui-sans-serif, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --t-xs: 0.6875rem;
+  --t-sm: 0.8125rem;
+  --t-md: 0.9375rem;
+  --t-lg: 1.25rem;
+  --t-xl: 1.75rem;
+  --t-tile: 3.25rem;
+  --track-caps: 0.14em;
+
+  /* Metrics */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 18px;
+  --s5: 26px;
+  --s6: 40px;
+  --r-sm: 5px;
+  --r-md: 9px;
+  --r-lg: 15px;
+  --r-pill: 999px;
+
+  --shadow-1:
+    0 1px 0 rgb(255 255 255 / 0.04) inset, 0 6px 18px rgb(0 0 0 / 0.35);
+  --ring: 0 0 0 3px rgb(77 134 220 / 0.55);
+
+  /* Motion */
+  --dur-fast: 90ms;
+  --dur: 170ms;
+  --dur-slow: 340ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.3, 1);
+}
