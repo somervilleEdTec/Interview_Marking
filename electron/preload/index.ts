@@ -33,7 +33,6 @@ export interface InterviewAPI {
   getSession: (id?: string) => Promise<Session | null>;
   updateSession: (session: Session) => Promise<Session>;
   importTranscript: () => Promise<unknown>;
-  exportDocx: () => Promise<unknown>;
   mergeExport: () => Promise<unknown>;
   sendGamepad: (
     buttons: boolean[],
@@ -67,7 +66,6 @@ const api: InterviewAPI = {
   getSession: (id) => ipcRenderer.invoke("session:get", id),
   updateSession: (session) => ipcRenderer.invoke("session:update", session),
   importTranscript: () => ipcRenderer.invoke("transcript:import"),
-  exportDocx: () => ipcRenderer.invoke("transcript:exportDocx"),
   mergeExport: () => ipcRenderer.invoke("transcript:mergeExport"),
   sendGamepad: (buttons, l1, profileId) =>
     ipcRenderer.invoke("gamepad:buttons", buttons, l1, profileId),

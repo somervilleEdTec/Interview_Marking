@@ -35,7 +35,6 @@ import {
   assertWritable,
 } from "../../src/excel/workbook";
 import { loadTranscriptFile } from "../../src/transcript/load";
-import { writeNumberedDocx } from "../../src/transcript/docx";
 import { mergeCriteriaByNearestTimestamp } from "../../src/transcript/merge-criteria";
 import { turnsForMerge } from "../../src/transcript/turns-for-merge";
 import { writeTaggedExport } from "../../src/excel/tagged-export";
@@ -599,21 +598,6 @@ app.whenReady().then(() => {
     } catch (e) {
       return { error: e instanceof Error ? e.message : String(e) };
     }
-  });
-
-  ipcMain.handle("transcript:exportDocx", async () => {
-    const store = loadStore(userData());
-    const session = store.project?.sessions.find(
-      (s) => s.id === activeSessionId,
-    );
-    if (!session?.transcript?.length) return { error: "No transcript" };
-    const res = await dialog.showSaveDialog(mainWindow!, {
-      defaultPath: `transcript-${session.participantNumber}-${session.interviewNumber}.docx`,
-      filters: [{ name: "Word", extensions: ["docx"] }],
-    });
-    if (res.canceled || !res.filePath) return null;
-    await writeNumberedDocx(session.transcript, res.filePath);
-    return { path: res.filePath };
   });
 
   app.on("will-quit", () => {

@@ -21,7 +21,6 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "docx": "^9.5.0",
     "exceljs": "^4.4.0",
     "mammoth": "^1.12.0",
     "pdf-parse": "^2.4.5"
@@ -62,11 +61,6 @@
       "!**/node_modules/mammoth/test/**",
       "!**/node_modules/mammoth/browser/**",
       "!**/node_modules/mammoth/mammoth.browser*",
-      "!**/node_modules/docx/dist/index.iife.js",
-      "!**/node_modules/docx/dist/index.umd.cjs",
-      "!**/node_modules/docx/dist/index.mjs",
-      "!**/node_modules/docx/dist/index.d.ts",
-      "!**/node_modules/docx/dist/index.d.cts",
       "!**/node_modules/@fontsource/**"
     ],
     "win": {

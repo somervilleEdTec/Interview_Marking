@@ -6,7 +6,6 @@ import { escapeHtml } from "./bind-targets";
 export interface ResolveProps {
   session: Session | null;
   onImport: () => void;
-  onExportDocx: () => void;
   onMergeExport: () => void;
   onOffset: (sec: number) => void;
   onReset: () => void;
@@ -59,8 +58,7 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
       </div>
       <div class="row">
         <button type="button" class="btn btn--primary" id="import">Import transcript</button>
-        <button type="button" class="btn" id="docx" ${session.transcript ? "" : "disabled"}>Download numbered .docx</button>
-        <button type="button" class="btn" id="merge" ${canMerge ? "" : "disabled"}>Merge &amp; export Excel</button>
+        <button type="button" class="btn" id="merge" ${canMerge ? "" : "disabled"}>Merge Markup and Transcript</button>
       </div>
       <label class="field">Alignment offset (seconds)
         <input id="offset" type="number" step="0.1" value="${session.recordingOffsetSec}" />
@@ -89,9 +87,6 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
   root
     .querySelector("#import")
     ?.addEventListener("click", () => props.onImport());
-  root
-    .querySelector("#docx")
-    ?.addEventListener("click", () => props.onExportDocx());
   root
     .querySelector("#merge")
     ?.addEventListener("click", () => props.onMergeExport());

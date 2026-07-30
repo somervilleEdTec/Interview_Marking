@@ -378,14 +378,6 @@ function paint(): void {
         if (res?.session) state.session = res.session;
         paint();
       },
-      onExportDocx: async () => {
-        const res = (await window.interview.exportDocx()) as {
-          error?: string;
-          path?: string;
-        };
-        if (res?.error) alert(res.error);
-        else if (res?.path) alert(`Saved: ${res.path}`);
-      },
       onMergeExport: async () => {
         const res = (await window.interview.mergeExport()) as {
           error?: string;

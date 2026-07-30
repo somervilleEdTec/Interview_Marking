@@ -12,11 +12,6 @@ files:
   - "!**/node_modules/mammoth/test/**"
   - "!**/node_modules/mammoth/browser/**"
   - "!**/node_modules/mammoth/mammoth.browser*"
-  - "!**/node_modules/docx/dist/index.iife.js"
-  - "!**/node_modules/docx/dist/index.umd.cjs"
-  - "!**/node_modules/docx/dist/index.mjs"
-  - "!**/node_modules/docx/dist/index.d.ts"
-  - "!**/node_modules/docx/dist/index.d.cts"
   - "!**/node_modules/@fontsource/**"
 win:
   target:

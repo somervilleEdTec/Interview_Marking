@@ -32,7 +32,7 @@ CI runs lint-free checks: typecheck, unit tests, build, and a ban on AV permissi
 
 ### Transcript prerequisite
 
-Import **SRT, VTT, TXT, DOCX, or PDF**. Mark alignment and merge export need timestamps (SRT/VTT, or timestamped DOCX/PDF). Plain TXT has no times — merge will refuse until you use a timestamped export. Merge & export Excel tags coded marks onto the nearest transcript timestamp without modifying the transcript or mark store.
+Import **SRT, VTT, TXT, DOCX, or PDF**. Mark alignment and merge export need timestamps (SRT/VTT, or timestamped DOCX/PDF). Plain TXT has no times — merge will refuse until you use a timestamped export. **Merge Markup and Transcript** tags coded marks onto the nearest transcript timestamp without modifying the transcript or mark store.
 
 ### Phase 0 input test
 
