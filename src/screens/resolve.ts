@@ -9,7 +9,6 @@ export interface ResolveProps {
   onExportDocx: () => void;
   onMergeExport: () => void;
   onOffset: (sec: number) => void;
-  onWindow: (markId: string, before: number, after: number) => void;
   onAppend: () => void;
 }
 
@@ -66,10 +65,6 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
                 <span class="mono">${r ? `L${r.lineStart}–${r.lineEnd}` : "unresolved"}</span>
               </div>
               <p class="extract">${escapeHtml(r?.text ?? "")}</p>
-              <div class="row">
-                <label>before <input data-win-before="${escapeHtml(m.id)}" type="number" value="${m.window.before}" /></label>
-                <label>after <input data-win-after="${escapeHtml(m.id)}" type="number" value="${m.window.after}" /></label>
-              </div>
             </li>`;
           })
           .join("")}

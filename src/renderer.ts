@@ -369,22 +369,6 @@ function paint(): void {
         state.session = await window.interview.updateSession(state.session);
         paint();
       },
-      onWindow: async (markId: string, before: number, after: number) => {
-        if (!state.session) return;
-        const m = state.session.marks.find((x) => x.id === markId);
-        if (!m) return;
-        m.window = { before, after };
-        if (state.session.transcript) {
-          const r = resolveMarkLines(
-            m,
-            state.session,
-            state.session.transcript,
-          );
-          if (r) m.resolved = r;
-        }
-        state.session = await window.interview.updateSession(state.session);
-        paint();
-      },
       onAppend: async () => {
         const res = (await window.interview.appendExcel()) as {
           error?: string;
