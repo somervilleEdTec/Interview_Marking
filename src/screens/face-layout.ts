@@ -152,35 +152,12 @@ function shoulderTileHtml(
   </div>`;
 }
 
-export function shoulderRowHtml(
-  buttons: SlotButton[],
-  getLabel: (slot: string) => string | undefined,
-  mode: "mark" | "bind",
-  opts?: {
-    hideUnassigned?: boolean;
-    counts?: Map<string, number>;
-    flashSlot?: string | null;
-  },
-): string {
-  const tiles = buttons
-    .map((b) => {
-      const label = getLabel(b.role.slot);
-      if (opts?.hideUnassigned && !label) return "";
-      return shoulderTileHtml(b, label, mode, {
-        count: opts?.counts?.get(b.role.slot) ?? 0,
-        flash: opts?.flashSlot === b.role.slot,
-      });
-    })
-    .filter(Boolean);
-  if (!tiles.length) return "";
-  return `<div class="shoulder-row">${tiles.join("")}</div>`;
-}
-
-/** Left (LB/LT) or right (RB/RT) column for Mark pad flanking layout. */
+/** Left (LB/LT) or right (RB/RT) column flanking the face diamond. */
 export function shoulderColumnHtml(
   buttons: SlotButton[],
   getLabel: (slot: string) => string | undefined,
   side: "left" | "right",
+  mode: "mark" | "bind" = "mark",
   opts?: {
     counts?: Map<string, number>;
     flashSlot?: string | null;
@@ -188,10 +165,10 @@ export function shoulderColumnHtml(
 ): string {
   const tiles = buttons.map((b) => {
     const label = getLabel(b.role.slot);
-    return shoulderTileHtml(b, label, "mark", {
+    return shoulderTileHtml(b, label, mode, {
       count: opts?.counts?.get(b.role.slot) ?? 0,
       flash: opts?.flashSlot === b.role.slot,
-      placeholder: true,
+      placeholder: mode === "mark",
     });
   });
   return `<div class="shoulder-col shoulder-col--${side}">${tiles.join("")}</div>`;
@@ -224,9 +201,29 @@ export function markPadHtml(
   const hasShoulder = shoulders.some((b) => getLabel(b.role.slot));
   if (!hasFace && !hasShoulder) return "";
   return `<div class="face-mark face-mark--pad">
-    ${shoulderColumnHtml(left, getLabel, "left", opts)}
+    ${shoulderColumnHtml(left, getLabel, "left", "mark", opts)}
     <div class="face-mark__center">${faceDiamondHtml(face, "mark")}</div>
-    ${shoulderColumnHtml(right, getLabel, "right", opts)}
+    ${shoulderColumnHtml(right, getLabel, "right", "mark", opts)}
+  </div>`;
+}
+
+/** Face diamond flanked by shoulder bind targets (Setup). */
+export function bindPadHtml(
+  profile: ControllerProfile,
+  getLabel: (slot: string) => string | undefined,
+): string {
+  const face = slotButtonsToFaceCells(faceButtons(profile), getLabel);
+  const shoulders = shoulderButtons(profile);
+  const left = shoulders.filter(
+    (b) => b.zone === "shoulder-lb" || b.zone === "shoulder-lt",
+  );
+  const right = shoulders.filter(
+    (b) => b.zone === "shoulder-rb" || b.zone === "shoulder-rt",
+  );
+  return `<div class="bind-pad">
+    ${shoulderColumnHtml(left, getLabel, "left", "bind")}
+    <div class="bind-pad__center">${faceDiamondHtml(face, "bind")}</div>
+    ${shoulderColumnHtml(right, getLabel, "right", "bind")}
   </div>`;
 }
 

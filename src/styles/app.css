@@ -483,17 +483,29 @@ h3 {
   max-width: 36rem;
   margin-inline: auto;
 }
+.bind-pad {
+  display: grid;
+  grid-template-columns: auto minmax(0, 18rem) auto;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  max-width: 36rem;
+  margin-inline: auto;
+}
 @media (max-width: 640px) {
-  .face-mark--pad {
+  .face-mark--pad,
+  .bind-pad {
     grid-template-columns: 1fr;
     max-width: 18rem;
   }
-  .face-mark--pad .shoulder-col {
+  .face-mark--pad .shoulder-col,
+  .bind-pad .shoulder-col {
     grid-auto-flow: column;
     justify-content: center;
   }
 }
-.face-mark__center {
+.face-mark__center,
+.bind-pad__center {
   width: 100%;
   min-width: 0;
 }
@@ -594,6 +606,16 @@ h3 {
   display: grid;
   gap: var(--s2);
   justify-items: center;
+}
+.bind-groups--face .bind-group--pad {
+  max-width: 36rem;
+}
+.bind-pad .face-diamond {
+  max-width: none;
+}
+.bind-pad .shoulder-btn--bind {
+  width: clamp(4.25rem, 11vw, 6rem);
+  min-height: 4.25rem;
 }
 .bind-groups--face .face-diamond__pad {
   aspect-ratio: 1;

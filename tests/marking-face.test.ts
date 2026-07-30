@@ -73,20 +73,31 @@ describe("markingCodesHtml", () => {
 });
 
 describe("padMapHtml face layout", () => {
-  it("renders diamond + shoulder bind targets", () => {
+  it("flanks diamond with LB/LT left and RB/RT right", () => {
     const byKey = new Map([
       ["A", "Rapport"],
       ["J", "Probing"],
     ]);
     const html = padMapHtml(profileById("xbox"), byKey);
     expect(html).toContain("face-diamond");
-    expect(html).toContain("shoulder-row");
+    expect(html).toContain("bind-pad");
+    expect(html).toContain("shoulder-col--left");
+    expect(html).toContain("shoulder-col--right");
+    expect(html).not.toContain("shoulder-row");
     expect(html).toContain(">LB<");
+    expect(html).toContain(">RB<");
     expect(html).toContain("Rapport");
     expect(html).toContain(">B<");
     expect(html).toContain("Menu · Start/Stop");
     expect(html).toContain("View · Undo");
     expect(html).not.toContain("LB + X");
     expect(html).not.toContain("Hold");
+    // Left column precedes diamond; right follows (LB/LT then face then RB/RT).
+    const left = html.indexOf("shoulder-col--left");
+    const center = html.indexOf("bind-pad__center");
+    const right = html.indexOf("shoulder-col--right");
+    expect(left).toBeGreaterThan(-1);
+    expect(center).toBeGreaterThan(left);
+    expect(right).toBeGreaterThan(center);
   });
 });
