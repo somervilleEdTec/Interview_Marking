@@ -28,6 +28,7 @@ export interface InterviewAPI {
     after: number;
   }) => Promise<Session>;
   setArmed: (on: boolean) => Promise<boolean>;
+  setShortcutsActive: (on: boolean) => Promise<boolean>;
   getSession: (id?: string) => Promise<Session | null>;
   updateSession: (session: Session) => Promise<Session>;
   importTranscript: () => Promise<unknown>;
@@ -60,6 +61,7 @@ const api: InterviewAPI = {
   openBluetoothSettings: () => ipcRenderer.invoke("controller:openBluetooth"),
   startSession: (payload) => ipcRenderer.invoke("session:start", payload),
   setArmed: (on) => ipcRenderer.invoke("session:arm", on),
+  setShortcutsActive: (on) => ipcRenderer.invoke("shortcuts:setActive", on),
   getSession: (id) => ipcRenderer.invoke("session:get", id),
   updateSession: (session) => ipcRenderer.invoke("session:update", session),
   importTranscript: () => ipcRenderer.invoke("transcript:import"),

@@ -9,7 +9,8 @@ export type ButtonRole =
       /** face = diamond; shoulder = LB/LT/RB/RT */
       group: "face" | "shoulder";
     }
-  | { kind: "undo" };
+  | { kind: "undo" }
+  | { kind: "toggleArmed" };
 
 export interface LayoutButton {
   role: ButtonRole;
@@ -80,8 +81,17 @@ const STANDARD_BUTTONS: LayoutButton[] = [
     label: "R2 / RT",
     index: 7,
   },
-  /** Options / Menu — undo (shoulders are criteria slots). */
-  { role: { kind: "undo" }, zone: "undo", label: "Options / Menu", index: 9 },
+  /**
+   * Start / Menu / Options (Standard Gamepad button 9) — Mark Start/Stop.
+   * Select / View / Create (button 8) — undo.
+   */
+  {
+    role: { kind: "toggleArmed" },
+    zone: "start",
+    label: "Start",
+    index: 9,
+  },
+  { role: { kind: "undo" }, zone: "undo", label: "Select", index: 8 },
 ];
 
 function profile(
@@ -90,6 +100,7 @@ function profile(
   idMatchers: string[],
   faceLabels: [string, string, string, string],
   shoulderLabels: [string, string, string, string],
+  startLabel: string,
   undoLabel: string,
 ): ControllerProfile {
   const buttons = STANDARD_BUTTONS.map((b) => {
@@ -101,6 +112,7 @@ function profile(
     if (b.zone === "shoulder-lt") return { ...b, label: shoulderLabels[1] };
     if (b.zone === "shoulder-rb") return { ...b, label: shoulderLabels[2] };
     if (b.zone === "shoulder-rt") return { ...b, label: shoulderLabels[3] };
+    if (b.zone === "start") return { ...b, label: startLabel };
     if (b.zone === "undo") return { ...b, label: undoLabel };
     return { ...b };
   });
@@ -121,6 +133,7 @@ export const CONTROLLER_PROFILES: ControllerProfile[] = [
     ["X", "Y", "A", "B"],
     ["LB", "LT", "RB", "RT"],
     "Menu",
+    "View",
   ),
   profile(
     "steam",
@@ -129,6 +142,7 @@ export const CONTROLLER_PROFILES: ControllerProfile[] = [
     ["X", "Y", "A", "B"],
     ["L1", "L2", "R1", "R2"],
     "Options",
+    "View",
   ),
   profile(
     "dualsense",
@@ -137,6 +151,7 @@ export const CONTROLLER_PROFILES: ControllerProfile[] = [
     ["Square", "Triangle", "Cross", "Circle"],
     ["L1", "L2", "R1", "R2"],
     "Options",
+    "Create",
   ),
   profile(
     "standard",
@@ -144,7 +159,8 @@ export const CONTROLLER_PROFILES: ControllerProfile[] = [
     [],
     ["X", "Y", "A", "B"],
     ["LB", "LT", "RB", "RT"],
-    "Menu",
+    "Start",
+    "Select",
   ),
 ];
 

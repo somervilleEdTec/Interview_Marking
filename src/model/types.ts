@@ -65,6 +65,11 @@ export interface Session {
   interviewNumber: string;
   /** Wall-clock session open time (metadata / live elapsed only). */
   startedAt: string;
+  /**
+   * When set, the interview clock is frozen at this elapsed ms (Stop).
+   * Cleared on Start; adjusted `startedAt` resumes from this value.
+   */
+  pausedElapsedMs?: number;
   defaultWindow: TimeWindow;
   marks: Mark[];
   transcript?: TranscriptLine[];

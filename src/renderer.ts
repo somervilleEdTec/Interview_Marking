@@ -64,7 +64,7 @@ function padStatusText(): { text: string; on: boolean } {
   }
   if (assigned) {
     return {
-      text: `${assigned.profile.displayName.split(" ")[0]} · ${assigned.label.slice(0, 28)}`,
+      text: assigned.profile.displayName,
       on: true,
     };
   }
@@ -114,21 +114,43 @@ async function bootstrap(): Promise<void> {
 
   window.interview.onSession((session: Session) => {
     state.session = session;
+    if (
+      state.screen === "setup" &&
+      shouldSuppressGamepadMarks(document.activeElement)
+    ) {
+      return;
+    }
     paint();
   });
 
   window.interview.onArmed((armed: boolean) => {
     state.armed = armed;
+    if (
+      state.screen === "setup" &&
+      shouldSuppressGamepadMarks(document.activeElement)
+    ) {
+      return;
+    }
     paint();
   });
 
   window.addEventListener("gamepadconnected", () => {
     refreshPads();
-    if (state.screen === "setup") paint();
+    if (
+      state.screen === "setup" &&
+      !shouldSuppressGamepadMarks(document.activeElement)
+    ) {
+      paint();
+    }
   });
   window.addEventListener("gamepaddisconnected", () => {
     refreshPads();
-    if (state.screen === "setup") paint();
+    if (
+      state.screen === "setup" &&
+      !shouldSuppressGamepadMarks(document.activeElement)
+    ) {
+      paint();
+    }
   });
 
   let prev: boolean[] = [];
@@ -157,7 +179,8 @@ async function bootstrap(): Promise<void> {
       lastSetupPadsSig = sig;
     }
 
-    if (!assigned || !state.armed) {
+    // Poll Start/Stop on Mark even while stopped; other buttons only while started.
+    if (!assigned || state.screen !== "marking") {
       prev = [];
       return;
     }
@@ -180,9 +203,15 @@ async function bootstrap(): Promise<void> {
     );
     const changed = buttons.some((b, i) => b && !prev[i]);
     prev = buttons;
-    if (changed) {
-      void window.interview.sendGamepad(buttons, false, assigned.profileId);
+    if (!changed) return;
+
+    if (!state.armed) {
+      const startIdx =
+        assigned.profile.buttons.find((b) => b.role.kind === "toggleArmed")
+          ?.index ?? 9;
+      if (!buttons[startIdx]) return;
     }
+    void window.interview.sendGamepad(buttons, false, assigned.profileId);
   }, 32);
 
   paint();
@@ -191,6 +220,8 @@ async function bootstrap(): Promise<void> {
 function navigate(screen: Screen): void {
   if (state.screen === "marking" && screen !== "marking") stopMarkingClock();
   state.screen = screen;
+  // Release home-row global shortcuts off Mark so Setup criterion typing works.
+  void window.interview.setShortcutsActive(screen === "marking" && state.armed);
   paint();
 }
 
@@ -373,7 +404,7 @@ function paint(): void {
       onReset: async () => {
         if (
           !confirm(
-            "Reset marking data and transcripts? Criteria, button map, and controller settings are kept.",
+            "Reset marking data and transcripts? The interview clock resets to 0:00. Criteria, button map, and controller settings are kept.",
           )
         ) {
           return;

@@ -12,7 +12,7 @@ describe("exportCodebookCsv", () => {
 });
 
 describe("gamepadAction", () => {
-  it("maps LT/RT to shoulder slots and Menu to undo", () => {
+  it("maps LT/RT to shoulder slots and Start to Start/Stop", () => {
     const buttons = Array(16).fill(false);
     buttons[6] = true;
     expect(gamepadAction(buttons, false)).toEqual({ type: "code", slot: "K" });
@@ -21,6 +21,6 @@ describe("gamepadAction", () => {
     expect(gamepadAction(buttons, false)).toEqual({ type: "code", slot: ";" });
     buttons[7] = false;
     buttons[9] = true;
-    expect(gamepadAction(buttons, false)).toEqual({ type: "undo" });
+    expect(gamepadAction(buttons, false)).toEqual({ type: "toggleArmed" });
   });
 });

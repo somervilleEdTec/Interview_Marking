@@ -29,7 +29,7 @@ export function renderControllerPanel(
       <p class="controller-status ${assignedMissing ? "is-warn" : ""}">
         ${
           assigned
-            ? `Assigned: <strong>${escapeHtml(assigned.label)}</strong> · ${escapeHtml(assigned.profile.displayName)}`
+            ? `Assigned: <strong>${escapeHtml(assigned.profile.displayName)}</strong>`
             : assignedMissing
               ? "Assigned pad disconnected — reconnect or choose another."
               : props.pads.length
@@ -44,8 +44,8 @@ export function renderControllerPanel(
               const on = p.id === props.assignedId;
               return `<li class="pad-item ${on ? "on" : ""}">
                 <div class="pad-meta">
-                  <strong>${escapeHtml(p.label)}</strong>
-                  <span class="ink-3">${escapeHtml(p.profile.displayName)}</span>
+                  <strong title="${escapeAttr(p.id)}">${escapeHtml(p.profile.displayName)}</strong>
+                  <span class="ink-3">Pad ${p.index + 1}</span>
                 </div>
                 <button type="button" class="btn btn--primary pad-assign" data-id="${escapeAttr(p.id)}" ${on ? "disabled" : ""}>
                   ${on ? "Assigned" : "Assign to marking"}

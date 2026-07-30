@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "fs";
 import { dirname, join } from "path";
 import type { Project, Session, Mark, SaturationEvent } from "../model/types";
+import { maxMarkAtMs } from "../model/time";
 
 export interface AppStore {
   project: Project | null;
@@ -35,6 +36,39 @@ export function loadStore(userData: string): AppStore {
   } catch {
     return empty();
   }
+}
+
+/**
+ * Ensure stopped/legacy sessions hold a frozen clock so elapsed does not
+ * keep growing across app restarts or reinstalls that keep settings.
+ */
+export function normalizeSessionClocks(store: AppStore): boolean {
+  let dirty = false;
+  if (!store.project) return false;
+  for (const session of store.project.sessions) {
+    if (session.pausedElapsedMs != null) {
+      if (session.armed) {
+        session.armed = false;
+        dirty = true;
+      }
+      continue;
+    }
+    // Prefer last mark over wall elapsed — wall time explodes after reinstall.
+    session.pausedElapsedMs = maxMarkAtMs(session.marks);
+    session.armed = false;
+    dirty = true;
+  }
+  return dirty;
+}
+
+/**
+ * Freeze legacy/runaway interview clocks. Call once at app boot
+ * (not on every loadStore — that would pause a live marking session).
+ */
+export function freezeOrphanSessionClocks(userData: string): AppStore {
+  const store = loadStore(userData);
+  if (normalizeSessionClocks(store)) saveStore(userData, store);
+  return store;
 }
 
 export function saveStore(userData: string, store: AppStore): void {
@@ -99,6 +133,7 @@ export function appendMark(
 /** Clear marks and transcripts from all sessions; keep codes/bindings/workbook. */
 export function resetMarkingData(userData: string): AppStore {
   const store = loadStore(userData);
+  const now = new Date().toISOString();
   if (store.project) {
     for (const session of store.project.sessions) {
       session.marks = [];
@@ -106,6 +141,8 @@ export function resetMarkingData(userData: string): AppStore {
       session.transcriptTurns = undefined;
       session.recordingOffsetSec = 0;
       session.armed = false;
+      session.startedAt = now;
+      session.pausedElapsedMs = 0;
     }
   }
   store.saturation = [];

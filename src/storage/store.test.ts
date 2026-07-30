@@ -7,6 +7,7 @@ import {
   loadStore,
   resetMarkingData,
   fullResetStore,
+  normalizeSessionClocks,
   type AppStore,
 } from "./store";
 import type { Session } from "../model/types";
@@ -78,6 +79,7 @@ describe("resetMarkingData", () => {
     expect(session.transcriptTurns).toBeUndefined();
     expect(session.recordingOffsetSec).toBe(0);
     expect(session.armed).toBe(false);
+    expect(session.pausedElapsedMs).toBe(0);
     expect(session.participantNumber).toBe("P1");
     expect(next.project!.codes).toHaveLength(1);
     expect(next.project!.workbookPath).toBe("/tmp/book.xlsx");
@@ -88,6 +90,43 @@ describe("resetMarkingData", () => {
         readFileSync(join(dir, "interview-marking-store.json"), "utf8"),
       ).saturation,
     ).toEqual([]);
+  });
+
+  it("resets the interview clock to 0:00", () => {
+    const dir = tmpUserData();
+    seededStore(dir);
+    const before = Date.now();
+    const next = resetMarkingData(dir);
+    const session = next.project!.sessions[0];
+    expect(session.pausedElapsedMs).toBe(0);
+    const started = Date.parse(session.startedAt);
+    expect(started).toBeGreaterThanOrEqual(before);
+    expect(started).toBeLessThanOrEqual(Date.now());
+  });
+});
+
+describe("normalizeSessionClocks", () => {
+  it("freezes legacy sessions at last mark instead of wall elapsed", () => {
+    const store: AppStore = {
+      project: {
+        workbookPath: "",
+        codes: [],
+        sessions: [
+          {
+            ...sampleSession(),
+            startedAt: "2020-01-01T00:00:00.000Z",
+            armed: true,
+          },
+        ],
+      },
+      activeSessionId: "s1",
+      saturation: [],
+      assignedGamepadId: null,
+    };
+    expect(normalizeSessionClocks(store)).toBe(true);
+    const session = store.project!.sessions[0];
+    expect(session.armed).toBe(false);
+    expect(session.pausedElapsedMs).toBe(1000);
   });
 });
 

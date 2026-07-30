@@ -45,8 +45,8 @@ export function renderCriteriaEditor(
           .map((c, i) => {
             const isEmpty = !c.sheetName;
             const realIndex = isEmpty ? rows.length : i;
-            return `<li class="criteria-row" draggable="${isEmpty ? "false" : "true"}" data-index="${realIndex}" data-sheet="${escapeAttr(c.sheetName)}">
-              <span class="criteria-drag" aria-hidden="true">${isEmpty ? "·" : "⋮⋮"}</span>
+            return `<li class="criteria-row" data-index="${realIndex}" data-sheet="${escapeAttr(c.sheetName)}">
+              <span class="criteria-drag" draggable="${isEmpty ? "false" : "true"}" aria-hidden="true">${isEmpty ? "·" : "⋮⋮"}</span>
               <input
                 type="text"
                 class="criteria-input"
@@ -95,22 +95,28 @@ export function renderCriteriaEditor(
     });
   });
 
-  root.querySelectorAll(".criteria-row[draggable='true']").forEach((row) => {
-    row.addEventListener("dragstart", (e) => {
-      const sheet = (row as HTMLElement).dataset.sheet ?? "";
-      if (!sheet) {
-        e.preventDefault();
-        return;
-      }
-      const dt = (e as DragEvent).dataTransfer;
-      if (dt) {
-        dt.setData("text/plain", sheet);
-        dt.effectAllowed = "move";
-      }
-      row.classList.add("is-dragging");
+  root
+    .querySelectorAll(".criteria-drag[draggable='true']")
+    .forEach((handle) => {
+      const row = handle.closest(".criteria-row") as HTMLElement | null;
+      if (!row) return;
+      handle.addEventListener("dragstart", (e) => {
+        const sheet = row.dataset.sheet ?? "";
+        if (!sheet) {
+          e.preventDefault();
+          return;
+        }
+        const dt = (e as DragEvent).dataTransfer;
+        if (dt) {
+          dt.setData("text/plain", sheet);
+          dt.effectAllowed = "move";
+        }
+        row.classList.add("is-dragging");
+      });
+      handle.addEventListener("dragend", () =>
+        row.classList.remove("is-dragging"),
+      );
     });
-    row.addEventListener("dragend", () => row.classList.remove("is-dragging"));
-  });
 }
 
 function escapeAttr(s: string): string {

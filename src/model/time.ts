@@ -19,6 +19,54 @@ export function elapsedSinceStart(
   return Math.max(0, nowMs - start);
 }
 
+/** Latest mark time in interview-relative ms (0 if none). */
+export function maxMarkAtMs(
+  marks: { at: number | string }[] | undefined,
+): number {
+  let max = 0;
+  for (const m of marks ?? []) {
+    if (typeof m.at === "number" && Number.isFinite(m.at)) {
+      max = Math.max(max, m.at);
+    }
+  }
+  return max;
+}
+
+/**
+ * Display elapsed for the Mark clock: frozen when paused, else live.
+ */
+export function displayElapsedMs(
+  session: {
+    startedAt: string;
+    pausedElapsedMs?: number;
+  },
+  nowMs: number = Date.now(),
+): number {
+  if (session.pausedElapsedMs != null) {
+    return Math.max(0, session.pausedElapsedMs);
+  }
+  return elapsedSinceStart(session.startedAt, nowMs);
+}
+
+/** Freeze the interview clock at the current (or given) elapsed ms. */
+export function pauseSessionClock<
+  T extends { startedAt: string; pausedElapsedMs?: number },
+>(session: T, nowMs: number = Date.now()): T {
+  if (session.pausedElapsedMs != null) return session;
+  session.pausedElapsedMs = elapsedSinceStart(session.startedAt, nowMs);
+  return session;
+}
+
+/** Resume a frozen clock so live elapsed continues from the paused value. */
+export function resumeSessionClock<
+  T extends { startedAt: string; pausedElapsedMs?: number },
+>(session: T, nowMs: number = Date.now()): T {
+  const elapsed = session.pausedElapsedMs ?? 0;
+  session.startedAt = new Date(nowMs - elapsed).toISOString();
+  delete session.pausedElapsedMs;
+  return session;
+}
+
 /**
  * Normalize mark `at` to interview-relative ms.
  * Accepts number, numeric string, or legacy wall-clock ISO (with startedAt).

@@ -15,6 +15,16 @@ export interface DetectedPad {
 }
 
 export function labelForPad(id: string, profile: ControllerProfile): string {
+  // Prefer profile type over raw OS id (often "Standard HID-compliant…").
+  const lower = id.toLowerCase();
+  const genericHid =
+    !id.trim() ||
+    lower.includes("hid-compliant") ||
+    lower.includes("generic") ||
+    lower === "standard gamepad";
+  if (genericHid) return profile.displayName;
+  // Known profiles: show type name; keep raw id only as a short secondary clue.
+  if (profile.id !== "standard") return profile.displayName;
   const short = id.replace(/\s*\([^)]*\)\s*/g, " ").trim();
   const clipped = short.length > 42 ? `${short.slice(0, 40)}…` : short;
   return clipped || profile.displayName;

@@ -232,7 +232,7 @@ export function markPadHtml(
 
 export function fixedRoleLabel(
   profile: ControllerProfile,
-  kind: "undo",
+  kind: "undo" | "toggleArmed",
 ): string {
   return profile.buttons.find((b) => b.role.kind === kind)?.label ?? kind;
 }

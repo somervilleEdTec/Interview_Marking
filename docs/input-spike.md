@@ -16,10 +16,10 @@ Prove that marking works while **Zoom holds keyboard focus**, before investing i
 ## Procedure
 
 1. Build/run `npm run dev` on Windows.
-2. Setup → assign keys → Mark → Start session / Start.
+2. Setup → assign keys → Mark → Start session / Start (or press controller Start/Menu/Options).
 3. Focus Zoom on primary display; leave Interview Marking visible on secondary.
 4. Press home-row keys and controller buttons; confirm counts increase without focusing the app.
-5. Stop; confirm keys no longer captured system-wide.
+5. Stop (UI or controller Start button); confirm keys no longer captured system-wide.
 6. Leave DualSense idle; note connection indicator; press a button to wake.
 
 ## DualSense keepalive
