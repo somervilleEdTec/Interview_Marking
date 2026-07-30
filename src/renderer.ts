@@ -362,14 +362,6 @@ function paint(): void {
           );
         }
       },
-      onCodebook: async () => {
-        const res = (await window.interview.exportCodebook()) as {
-          path?: string;
-          error?: string;
-        };
-        if (res?.error) alert(res.error);
-        else if (res?.path) alert(`Saved: ${res.path}`);
-      },
     });
   }
 
