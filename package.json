@@ -1,6 +1,6 @@
 {
   "name": "interview-marking",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Local eyes-free interview marking with Excel write-back",
   "main": "./out/main/index.js",
   "author": "somervilleEdTec",
