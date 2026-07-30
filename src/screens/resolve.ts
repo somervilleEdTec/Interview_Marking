@@ -9,7 +9,6 @@ export interface ResolveProps {
   onExportDocx: () => void;
   onMergeExport: () => void;
   onOffset: (sec: number) => void;
-  onAppend: () => void;
 }
 
 export function renderResolve(root: HTMLElement, props: ResolveProps): void {
@@ -18,16 +17,6 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
   if (!session) {
     root.innerHTML = `<section class="panel panel--wide"><p>No session.</p></section>`;
     return;
-  }
-
-  const preview = session.marks.filter(
-    (m) => !m.dropped && m.codeRef && m.resolved,
-  );
-  const bySheet = new Map<string, typeof preview>();
-  for (const m of preview) {
-    const list = bySheet.get(m.codeRef!) ?? [];
-    list.push(m);
-    bySheet.set(m.codeRef!, list);
   }
 
   const hasTimed = sessionHasTimedTranscript(session);
@@ -69,24 +58,6 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
           })
           .join("")}
       </ul>
-      <h2>Append preview</h2>
-      ${
-        [...bySheet.entries()]
-          .map(
-            ([sheet, marks]) =>
-              `<div class="preview-sheet"><h3>${escapeHtml(sheet)} (+${marks.length})</h3>
-            <ul>${marks
-              .map(
-                (m) =>
-                  `<li class="mono">${escapeHtml(session.participantNumber)} | ${escapeHtml(session.interviewNumber)} | ${m.resolved!.lineStart}–${m.resolved!.lineEnd} | ${escapeHtml(m.resolved!.text.slice(0, 80))}</li>`,
-              )
-              .join("")}</ul></div>`,
-          )
-          .join("") || '<p class="ink-3">Nothing ready to append.</p>'
-      }
-      <button type="button" class="btn btn--primary" id="append" ${preview.length ? "" : "disabled"}>
-        Backup &amp; append to Excel
-      </button>
     </section>
   `;
 
@@ -99,9 +70,6 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
   root
     .querySelector("#merge")
     ?.addEventListener("click", () => props.onMergeExport());
-  root
-    .querySelector("#append")
-    ?.addEventListener("click", () => props.onAppend());
   root.querySelector("#offset")?.addEventListener("change", (e) => {
     props.onOffset(Number((e.target as HTMLInputElement).value));
   });

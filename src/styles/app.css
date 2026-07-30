@@ -684,9 +684,6 @@ h3 {
   color: var(--ink-2);
   margin: 0;
 }
-.preview-sheet {
-  margin: var(--s3) 0;
-}
 .ribbon .tick {
   width: 10px;
   height: 28px;
