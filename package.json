@@ -15,8 +15,8 @@
     "test": "vitest run",
     "test:excel": "vitest run src/excel",
     "test:watch": "vitest",
-    "dist": "npm run build && electron-builder",
-    "dist:win": "npm run build && electron-builder --win nsis",
+    "dist": "npm run build && electron-builder --publish never",
+    "dist:win": "npm run build && electron-builder --win nsis --publish never",
     "check:av": "node scripts/check-no-av.mjs",
     "prepare": "husky"
   },

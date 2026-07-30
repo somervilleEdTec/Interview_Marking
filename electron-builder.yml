@@ -17,3 +17,4 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: Interview Marking
+publish: null
