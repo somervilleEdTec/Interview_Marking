@@ -13,28 +13,36 @@ export function renderControllerPanel(
 ): void {
   const assigned = props.pads.find((p) => p.id === props.assignedId);
   const assignedMissing = !!props.assignedId && !assigned;
+  const multiPad = props.pads.length > 1;
+  const sole = props.pads.length === 1 ? props.pads[0] : null;
 
   root.innerHTML = `
     <section class="panel panel--wide" id="controller-panel">
       <h2>Controller</h2>
-      <p class="hint">Pair your pad in system Bluetooth, press a button to wake it, then assign it for marking.</p>
+      <p class="hint">${
+        multiPad
+          ? "Pair your pad in system Bluetooth, press a button to wake it, then assign it for marking."
+          : "Pair your pad in system Bluetooth and press a button to wake it. Marking uses the connected controller."
+      }</p>
       <div class="row">
         <button type="button" class="btn" id="open-bt">Open Bluetooth settings</button>
         ${
-          props.assignedId
+          multiPad && props.assignedId
             ? `<button type="button" class="btn" id="clear-pad">Clear assignment</button>`
             : ""
         }
       </div>
       <p class="controller-status ${assignedMissing ? "is-warn" : ""}">
         ${
-          assigned
-            ? `Assigned: <strong>${escapeHtml(assigned.profile.displayName)}</strong>`
-            : assignedMissing
-              ? "Assigned pad disconnected — reconnect or choose another."
-              : props.pads.length
-                ? "No pad assigned — marking uses the first connected pad until you assign one."
-                : "No controller detected."
+          sole
+            ? `Connected: <strong>${escapeHtml(sole.profile.displayName)}</strong>`
+            : assigned
+              ? `Assigned: <strong>${escapeHtml(assigned.profile.displayName)}</strong>`
+              : assignedMissing
+                ? "Assigned pad disconnected — reconnect or choose another."
+                : props.pads.length
+                  ? "No pad assigned — marking uses the first connected pad until you assign one."
+                  : "No controller detected."
         }
       </p>
       <ul class="pad-list">
@@ -42,14 +50,17 @@ export function renderControllerPanel(
           props.pads
             .map((p) => {
               const on = p.id === props.assignedId;
-              return `<li class="pad-item ${on ? "on" : ""}">
+              const assignBtn = multiPad
+                ? `<button type="button" class="btn btn--primary pad-assign" data-id="${escapeAttr(p.id)}" ${on ? "disabled" : ""}>
+                  ${on ? "Assigned" : "Assign to marking"}
+                </button>`
+                : "";
+              return `<li class="pad-item ${on || sole ? "on" : ""}">
                 <div class="pad-meta">
                   <strong title="${escapeAttr(p.id)}">${escapeHtml(p.profile.displayName)}</strong>
                   <span class="ink-3">Pad ${p.index + 1}</span>
                 </div>
-                <button type="button" class="btn btn--primary pad-assign" data-id="${escapeAttr(p.id)}" ${on ? "disabled" : ""}>
-                  ${on ? "Assigned" : "Assign to marking"}
-                </button>
+                ${assignBtn}
               </li>`;
             })
             .join("") ||
