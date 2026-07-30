@@ -4,12 +4,12 @@ Interview Marking is a **local-first** desktop app for higher-education intervie
 
 ## Data processed
 
-| Data | Where stored | Leaves the device? |
-|------|----------------|--------------------|
-| Participant / interview numbers | Electron `userData` JSON store | No |
-| Marks, notes, saturation events | Same local store | No |
-| Imported transcripts | Same local store (active session) | No |
-| Coding workbook extracts | User-chosen Excel path (+ `.bak.xlsx` backups beside it) | No |
+| Data                            | Where stored                                             | Leaves the device? |
+| ------------------------------- | -------------------------------------------------------- | ------------------ |
+| Participant / interview numbers | Electron `userData` JSON store                           | No                 |
+| Marks, notes, saturation events | Same local store                                         | No                 |
+| Imported transcripts            | Same local store (active session)                        | No                 |
+| Coding workbook extracts        | User-chosen Excel path (+ `.bak.xlsx` backups beside it) | No                 |
 
 No microphone, camera, or screen capture. No analytics, telemetry, or cloud AI calls.
 
@@ -30,5 +30,13 @@ Packaged builds load UI from local files only. Fonts ship with the app (no Googl
 - Prefer storing workbooks on approved institutional drives
 - Clear or archive local `userData` when a study ends (OS app data folder for Interview Marking)
 - Do not share the local store JSON or workbook backups outside approved channels
+
+## Uninstall (Windows)
+
+The NSIS uninstaller:
+
+1. **Always deletes transcription data** from the local store (transcript lines/turns and resolved mark excerpts), including when settings are kept
+2. **Prompts** whether to also remove settings and app data (criteria, bindings, sessions, caches)
+3. Skips this cleanup when the uninstaller runs as part of an in-place upgrade
 
 This document supports DPIA / ethics submissions; it is not legal advice.

@@ -76,7 +76,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Interview Marking"
+      "shortcutName": "Interview Marking",
+      "include": "build/installer.nsh"
     }
   }
 }

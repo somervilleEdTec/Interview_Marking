@@ -120,6 +120,31 @@ export function fullResetStore(userData: string): AppStore {
   return store;
 }
 
+/**
+ * Remove all transcription payloads from a store (in place).
+ * Used on uninstall when the user chooses to keep settings.
+ * Clears transcript lines/turns and resolved mark excerpts.
+ */
+export function stripTranscriptData(store: AppStore): AppStore {
+  if (store.project) {
+    for (const session of store.project.sessions) {
+      delete session.transcript;
+      delete session.transcriptTurns;
+      for (const mark of session.marks) {
+        delete mark.resolved;
+      }
+    }
+  }
+  return store;
+}
+
+/** Persist store after stripping all transcription data from userData. */
+export function stripAndSaveTranscripts(userData: string): AppStore {
+  const store = stripTranscriptData(loadStore(userData));
+  saveStore(userData, store);
+  return store;
+}
+
 export function exportCodebookCsv(
   codes: { sheetName: string; parent: string | null; rowCount: number }[],
 ): string {
