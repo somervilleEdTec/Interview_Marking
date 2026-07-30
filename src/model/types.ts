@@ -1,4 +1,4 @@
-/** Shared domain types — absolute wall-clock times only. */
+/** Shared domain types — mark times are interview-relative (ms from 0:00). */
 
 export type MarkSlot =
   "A" | "S" | "D" | "F" | "J" | "K" | "L" | ";" | "general" | "nofit";
@@ -34,7 +34,8 @@ export interface ResolvedMark {
 
 export interface Mark {
   id: string;
-  at: string;
+  /** Milliseconds from interview start (0:00). */
+  at: number;
   slot: MarkSlot;
   codeRef: string | null;
   window: TimeWindow;
@@ -54,11 +55,12 @@ export interface Session {
   id: string;
   participantNumber: string;
   interviewNumber: string;
+  /** Wall-clock session open time (metadata / live elapsed only). */
   startedAt: string;
   defaultWindow: TimeWindow;
   marks: Mark[];
   transcript?: TranscriptLine[];
-  /** Seconds to add to mark→recording mapping (manual correction). */
+  /** Seconds added when aligning marks to the recording/transcript. */
   recordingOffsetSec: number;
   armed: boolean;
 }
@@ -72,7 +74,8 @@ export interface Project {
 }
 
 export interface SaturationEvent {
-  at: string;
+  /** Interview-relative ms (same basis as Mark.at). */
+  at: number;
   code: string;
   kind: "first_mark" | "last_seen";
 }

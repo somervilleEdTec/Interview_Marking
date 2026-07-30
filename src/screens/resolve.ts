@@ -1,4 +1,5 @@
 import type { Session } from "../model/types";
+import { formatInterviewTime, markAtToMs } from "../model/time";
 
 export interface ResolveProps {
   session: Session | null;
@@ -37,10 +38,10 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
         <button type="button" class="btn" id="docx" ${session.transcript ? "" : "disabled"}>Download numbered .docx</button>
         <button type="button" class="btn" id="codebook">Export codebook CSV</button>
       </div>
-      <label class="field">Recording offset (s)
+      <label class="field">Alignment offset (seconds)
         <input id="offset" type="number" step="0.1" value="${session.recordingOffsetSec}" />
       </label>
-      <p class="hint">${session.transcript ? session.transcript.length + " transcript lines" : "No transcript yet"}</p>
+      <p class="hint">Adjust so mark times (from 0:00) line up with the recording. ${session.transcript ? session.transcript.length + " transcript lines" : "No transcript yet"}</p>
       <ul class="resolve-list">
         ${session.marks
           .filter((m) => !m.dropped)
@@ -48,6 +49,7 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
             const r = m.resolved;
             return `<li>
               <div class="resolve-head">
+                <span class="mono">${formatInterviewTime(markAtToMs(m.at, session.startedAt))}</span>
                 <span class="chip">${m.slot}</span>
                 <strong>${m.codeRef ?? "—"}</strong>
                 <span class="mono">${r ? `L${r.lineStart}–${r.lineEnd}` : "unresolved"}</span>

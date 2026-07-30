@@ -1,12 +1,36 @@
 import { resolveMarkLines, markToRecordingMs, DEFAULT_WINDOW } from "./resolve";
+import { formatInterviewTime, markAtToMs, elapsedSinceStart } from "./time";
 import type { Mark, Session, TranscriptLine } from "./types";
 
-describe("markToRecordingMs", () => {
-  it("maps wall clock to recording offset", () => {
+describe("formatInterviewTime", () => {
+  it("formats from 0:00 as m:ss", () => {
+    expect(formatInterviewTime(0)).toBe("0:00");
+    expect(formatInterviewTime(5_000)).toBe("0:05");
+    expect(formatInterviewTime(90_000)).toBe("1:30");
+    expect(formatInterviewTime(3_661_000)).toBe("61:01");
+  });
+});
+
+describe("markAtToMs", () => {
+  it("passes through relative ms and legacy ISO", () => {
+    expect(markAtToMs(90_000)).toBe(90_000);
+    expect(
+      markAtToMs("2026-01-01T10:01:30.000Z", "2026-01-01T10:00:00.000Z"),
+    ).toBe(90_000);
+  });
+});
+
+describe("elapsedSinceStart", () => {
+  it("returns non-negative elapsed", () => {
     const start = "2026-01-01T10:00:00.000Z";
-    const mark = "2026-01-01T10:01:30.000Z";
-    expect(markToRecordingMs(mark, start, 0)).toBe(90_000);
-    expect(markToRecordingMs(mark, start, 5)).toBe(95_000);
+    expect(elapsedSinceStart(start, Date.parse(start) + 12_500)).toBe(12_500);
+  });
+});
+
+describe("markToRecordingMs", () => {
+  it("adds alignment offset to interview-relative mark time", () => {
+    expect(markToRecordingMs(90_000, 0)).toBe(90_000);
+    expect(markToRecordingMs(90_000, 5)).toBe(95_000);
   });
 });
 
@@ -28,7 +52,7 @@ describe("resolveMarkLines", () => {
   };
   const mark: Mark = {
     id: "m",
-    at: "2026-01-01T10:00:03.000Z",
+    at: 3_000,
     slot: "A",
     codeRef: "risk",
     window: { before: 1, after: 1 },
