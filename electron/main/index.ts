@@ -31,8 +31,11 @@ import {
   isWorkbookLocked,
   assertWritable,
 } from "../../src/excel/workbook";
-import { parseTranscriptFile } from "../../src/transcript/parse";
+import { loadTranscriptFile } from "../../src/transcript/load";
 import { writeNumberedDocx } from "../../src/transcript/docx";
+import { mergeCriteriaByNearestTimestamp } from "../../src/transcript/merge-criteria";
+import { linesToTurns } from "../../src/transcript/turns";
+import { writeTaggedExport } from "../../src/excel/tagged-export";
 import { resolveMarkLines, DEFAULT_WINDOW } from "../../src/model/resolve";
 import { elapsedSinceStart } from "../../src/model/time";
 import type { Mark, Session, MarkSlot, Code } from "../../src/model/types";
@@ -386,27 +389,65 @@ app.whenReady().then(() => {
 
   ipcMain.handle("transcript:import", async () => {
     const res = await dialog.showOpenDialog(mainWindow!, {
-      filters: [{ name: "Subtitles", extensions: ["srt", "vtt"] }],
+      filters: [
+        {
+          name: "Transcripts",
+          extensions: ["srt", "vtt", "txt", "docx", "pdf"],
+        },
+      ],
       properties: ["openFile"],
     });
     if (res.canceled || !res.filePaths[0]) return null;
     const path = res.filePaths[0];
-    const content = readFileSync(path, "utf8");
     try {
-      const lines = parseTranscriptFile(path, content);
+      const { turns, lines } = await loadTranscriptFile(path);
       const store = loadStore(userData());
       const session = store.project?.sessions.find(
         (s) => s.id === activeSessionId,
       );
       if (!session) return { error: "No active session" };
-      session.transcript = lines;
-      for (const m of session.marks) {
-        if (m.dropped) continue;
-        const r = resolveMarkLines(m, session, lines);
-        if (r) m.resolved = r;
+      session.transcriptTurns = turns;
+      session.transcript = lines.length ? lines : undefined;
+      if (lines.length) {
+        for (const m of session.marks) {
+          if (m.dropped) continue;
+          const r = resolveMarkLines(m, session, lines);
+          if (r) m.resolved = r;
+        }
       }
       saveStore(userData(), store);
-      return { lines, session };
+      return { lines, turns, session };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : String(e) };
+    }
+  });
+
+  ipcMain.handle("transcript:mergeExport", async () => {
+    const store = loadStore(userData());
+    const session = store.project?.sessions.find(
+      (s) => s.id === activeSessionId,
+    );
+    if (!session) return { error: "No active session" };
+    const turns =
+      session.transcriptTurns ??
+      (session.transcript ? linesToTurns(session.transcript) : []);
+    if (!turns.length) return { error: "No transcript" };
+    const coded = session.marks.filter((m) => !m.dropped && m.codeRef);
+    if (!coded.length) return { error: "No coded marks to merge" };
+    try {
+      const rows = mergeCriteriaByNearestTimestamp(
+        turns,
+        session.marks,
+        session.recordingOffsetSec,
+        session.startedAt,
+      );
+      const res = await dialog.showSaveDialog(mainWindow!, {
+        defaultPath: `tagged-${session.participantNumber}-${session.interviewNumber}.xlsx`,
+        filters: [{ name: "Excel", extensions: ["xlsx"] }],
+      });
+      if (res.canceled || !res.filePath) return null;
+      await writeTaggedExport(rows, res.filePath);
+      return { path: res.filePath, rows: rows.length };
     } catch (e) {
       return { error: e instanceof Error ? e.message : String(e) };
     }

@@ -27,6 +27,7 @@ export interface InterviewAPI {
   updateSession: (session: Session) => Promise<Session>;
   importTranscript: () => Promise<unknown>;
   exportDocx: () => Promise<unknown>;
+  mergeExport: () => Promise<unknown>;
   appendExcel: () => Promise<unknown>;
   exportCodebook: () => Promise<unknown>;
   saturation: () => Promise<unknown>;
@@ -59,6 +60,7 @@ const api: InterviewAPI = {
   updateSession: (session) => ipcRenderer.invoke("session:update", session),
   importTranscript: () => ipcRenderer.invoke("transcript:import"),
   exportDocx: () => ipcRenderer.invoke("transcript:exportDocx"),
+  mergeExport: () => ipcRenderer.invoke("transcript:mergeExport"),
   appendExcel: () => ipcRenderer.invoke("excel:append"),
   exportCodebook: () => ipcRenderer.invoke("codebook:export"),
   saturation: () => ipcRenderer.invoke("saturation:list"),

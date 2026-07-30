@@ -304,6 +304,16 @@ function paint(): void {
         if (res?.error) alert(res.error);
         else if (res?.path) alert(`Saved: ${res.path}`);
       },
+      onMergeExport: async () => {
+        const res = (await window.interview.mergeExport()) as {
+          error?: string;
+          path?: string;
+          rows?: number;
+        };
+        if (res?.error) alert(res.error);
+        else if (res?.path)
+          alert(`Merged export saved (${res.rows ?? 0} rows): ${res.path}`);
+      },
       onOffset: async (sec: number) => {
         if (!state.session) return;
         state.session.recordingOffsetSec = sec;

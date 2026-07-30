@@ -32,7 +32,7 @@ CI runs lint-free checks: typecheck, unit tests, build, and a ban on AV permissi
 
 ### Transcript prerequisite
 
-Alignment needs **SRT or VTT** (timestamped). Plain Word/TXT exports are rejected. Export subtitles from Autotekst/Whisper before the Transcript step.
+Import **SRT, VTT, TXT, DOCX, or PDF**. Mark alignment and merge export need timestamps (SRT/VTT, or timestamped DOCX/PDF). Plain TXT has no times — merge will refuse until you use a timestamped export. Merge & export Excel tags coded marks onto the nearest transcript timestamp without modifying the transcript or mark store.
 
 ### Phase 0 input test
 

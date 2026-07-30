@@ -51,6 +51,14 @@ export interface TranscriptLine {
   text: string;
 }
 
+/** Parsed transcript unit — speaker only when present in the source file. */
+export interface TranscriptTurn {
+  startMs: number | null;
+  endMs: number | null;
+  speaker: string | null;
+  text: string;
+}
+
 export interface Session {
   id: string;
   participantNumber: string;
@@ -60,6 +68,8 @@ export interface Session {
   defaultWindow: TimeWindow;
   marks: Mark[];
   transcript?: TranscriptLine[];
+  /** Full parsed turns (incl. speaker when source had it) for merge export. */
+  transcriptTurns?: TranscriptTurn[];
   /** Seconds added when aligning marks to the recording/transcript. */
   recordingOffsetSec: number;
   armed: boolean;

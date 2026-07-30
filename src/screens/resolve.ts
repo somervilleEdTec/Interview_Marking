@@ -5,6 +5,7 @@ export interface ResolveProps {
   session: Session | null;
   onImport: () => void;
   onExportDocx: () => void;
+  onMergeExport: () => void;
   onOffset: (sec: number) => void;
   onWindow: (markId: string, before: number, after: number) => void;
   onAppend: () => void;
@@ -29,13 +30,20 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
     bySheet.set(m.codeRef!, list);
   }
 
+  const hasTurns =
+    (session.transcriptTurns?.length ?? 0) > 0 ||
+    (session.transcript?.length ?? 0) > 0;
+  const hasCoded = session.marks.some((m) => !m.dropped && m.codeRef);
+  const canMerge = hasTurns && hasCoded;
+
   root.innerHTML = `
     <section class="panel panel--wide">
       <h1>Transcript &amp; write-back</h1>
-      <p class="lede">Import SRT/VTT only. Line n = segment n. Preview appends before writing.</p>
+      <p class="lede">Import SRT, VTT, TXT, DOCX, or PDF. Merge tags criteria onto nearest transcript timestamps without changing the source files.</p>
       <div class="row">
-        <button type="button" class="btn btn--primary" id="import">Import SRT/VTT</button>
+        <button type="button" class="btn btn--primary" id="import">Import transcript</button>
         <button type="button" class="btn" id="docx" ${session.transcript ? "" : "disabled"}>Download numbered .docx</button>
+        <button type="button" class="btn" id="merge" ${canMerge ? "" : "disabled"}>Merge &amp; export Excel</button>
         <button type="button" class="btn" id="codebook">Export codebook CSV</button>
       </div>
       <label class="field">Alignment offset (seconds)
@@ -85,6 +93,9 @@ export function renderResolve(root: HTMLElement, props: ResolveProps): void {
   root
     .querySelector("#docx")
     ?.addEventListener("click", () => props.onExportDocx());
+  root
+    .querySelector("#merge")
+    ?.addEventListener("click", () => props.onMergeExport());
   root
     .querySelector("#codebook")
     ?.addEventListener("click", () => props.onCodebook());
